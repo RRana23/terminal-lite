@@ -5,7 +5,7 @@ import io, json, os, sys, datetime
 import numpy as np, pandas as pd, requests
 
 H = {"User-Agent": "Mozilla/5.0"}
-os.makedirs("data", exist_ok=True)
+pass
 
 # ---------- fetch ----------
 def fetch_sp500():
@@ -77,11 +77,11 @@ def save_if_ok(name, fn, ok):
     """Keep yesterday's file if today's fetch fails or looks broken."""
     try:
         v = fn()
-        if ok(v): json.dump(v, open(f"data/{name}.json", "w"), separators=(",", ":")); return
+        if ok(v): json.dump(v, open(f"{name}.json", "w"), separators=(",", ":")); return
         print(name, "looked incomplete, keeping previous file")
     except Exception as e:
         print(name, "failed:", e)
-    if not os.path.exists(f"data/{name}.json"): raise SystemExit(f"No data for {name}")
+    if not os.path.exists(f"{name}.json"): raise SystemExit(f"No data for {name}")
 
 # ---------- build ----------
 NM = {'^GSPC':'S&P 500','^DJI':'Dow Jones','^IXIC':'Nasdaq Composite','^RUT':'Russell 2000','^VIX':'VIX','^FTSE':'FTSE 100','^N225':'Nikkei 225','^GDAXI':'DAX','^HSI':'Hang Seng','^STOXX50E':'Euro Stoxx 50',
@@ -92,7 +92,7 @@ GL = {'ETFs':'ETF','Indexes':'Index','Currencies':'Currency','Crypto':'Crypto','
 J = lambda o: json.dumps(o, separators=(",", ":"))
 
 def build():
-    D = json.load(open("data/sp500.json")); E = json.load(open("data/extra.json")); HS = json.load(open("data/housing.json"))
+    D = json.load(open("sp500.json")); E = json.load(open("extra.json")); HS = json.load(open("housing.json"))
     master = max((v["d"] for v in D.values()), key=len)
     C = pd.DataFrame({t: pd.Series(v["c"], index=v["d"]) for t, v in D.items()}).reindex(master)
     ret = C.pct_change(); mkt = ret.mean(axis=1)
