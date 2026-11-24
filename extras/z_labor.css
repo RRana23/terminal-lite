@@ -1,0 +1,6 @@
+/* Jobs view on the Economy tab */
+.lcap{margin-top:8px;font:12px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+table.lt td,table.lt th{text-align:right;white-space:nowrap}
+table.lt td:first-child,table.lt th:first-child{text-align:left;white-space:normal;font-family:'IBM Plex Sans',system-ui,sans-serif}
+.rsvg{width:100%;overflow:hidden}
+.rsvg svg{display:block;font:11px 'IBM Plex Mono',ui-monospace,monospace}
