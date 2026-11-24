@@ -1,11 +1,12 @@
-"""Fetch market + housing data and build index.html from template.html.
+"""Fetch market + housing data and build the site into public/.
 Usage: python update.py          (fetch everything, then build)
-       python update.py --build  (build from existing data/*.json only)"""
-import io, json, os, sys, datetime
+       python update.py --build  (build from cached/seed data only)"""
+import io, json, os, re, sys, datetime
 import numpy as np, pandas as pd, requests
 
 H = {"User-Agent": "Mozilla/5.0"}
-pass
+CACHE = "cache"
+os.makedirs(CACHE, exist_ok=True)
 
 # ---------- fetch ----------
 def fetch_sp500():
@@ -14,7 +15,7 @@ def fetch_sp500():
     t = pd.read_html(io.StringIO(html))[0]
     names = t.set_index("Symbol").Security
     syms = t.Symbol.str.replace(".", "-", regex=False).tolist()
-    d = yf.download(syms, period="2y", group_by="ticker", auto_adjust=True, threads=True, progress=False)
+    d = yf.download(syms, period="10y", group_by="ticker", auto_adjust=True, threads=True, progress=False)
     out = {}
     for s in syms:
         try:
@@ -35,7 +36,7 @@ G = {"ETFs": "SPY QQQ IWM VOO IVV VTI EEM EFA VEA VWO GLD SLV USO XLF XLE XLK XL
 def fetch_extra():
     import yfinance as yf
     g = {k: v.split() for k, v in G.items()}
-    d = yf.download(sorted({t for v in g.values() for t in v}), period="5y", auto_adjust=True, group_by="ticker", threads=True, progress=False)
+    d = yf.download(sorted({t for v in g.values() for t in v}), period="10y", auto_adjust=True, group_by="ticker", threads=True, progress=False)
     out = {}
     for k, ts in g.items():
         out[k] = {}
@@ -73,15 +74,20 @@ def fetch_housing():
         out["fred"][k] = {"n": n, "d": d.index.tolist(), "v": d.round(2).tolist()}
     print("Housing: FRED", len(out["fred"]), "Zillow", list(out["zillow"])); return out
 
+def path(name):
+    """Newest good copy: tonight's cache, else the seed file committed in the repo."""
+    c = f"{CACHE}/{name}.json"
+    return c if os.path.exists(c) else f"{name}.json"
+
 def save_if_ok(name, fn, ok):
-    """Keep yesterday's file if today's fetch fails or looks broken."""
+    """Keep the previous file if today's fetch fails or looks broken."""
     try:
         v = fn()
-        if ok(v): json.dump(v, open(f"{name}.json", "w"), separators=(",", ":")); return
+        if ok(v): json.dump(v, open(f"{CACHE}/{name}.json", "w"), separators=(",", ":")); return
         print(name, "looked incomplete, keeping previous file")
     except Exception as e:
         print(name, "failed:", e)
-    if not os.path.exists(f"{name}.json"): raise SystemExit(f"No data for {name}")
+    if not os.path.exists(path(name)): raise SystemExit(f"No data for {name}")
 
 # ---------- build ----------
 NM = {'^GSPC':'S&P 500','^DJI':'Dow Jones','^IXIC':'Nasdaq Composite','^RUT':'Russell 2000','^VIX':'VIX','^FTSE':'FTSE 100','^N225':'Nikkei 225','^GDAXI':'DAX','^HSI':'Hang Seng','^STOXX50E':'Euro Stoxx 50',
@@ -91,35 +97,80 @@ NM = {'^GSPC':'S&P 500','^DJI':'Dow Jones','^IXIC':'Nasdaq Composite','^RUT':'Ru
 GL = {'ETFs':'ETF','Indexes':'Index','Currencies':'Currency','Crypto':'Crypto','Bonds':'Bond'}
 J = lambda o: json.dumps(o, separators=(",", ":"))
 
+def split_template():
+    """Turn template.html into a small page shell plus app.js that loads data on demand."""
+    s = open("template.html").read()
+    i = s.index("<script>"); j = s.rindex("</script>")
+    js, html = s[i + 8:j], s[:i] + "@@BOOT@@" + s[j + 9:]
+    def rep(o, n):
+        nonlocal js
+        if js.count(o) != 1: raise SystemExit("template patch did not match: " + o[:60])
+        js = js.replace(o, n)
+    rep("const RAW=/*RAW*/{},RD=/*RD*/[],CO={};", "const RAW=META.S,RD=META.RD,CO={};")
+    rep("px=x.c[x.c.length-1]", "px=x.p")
+    rep("const HS=/*HS*/{},HF=", "const HS=META.HS,HF=")
+    rep("const EXT=/*EXT*/{},POOL=/*POOL*/[];", "const EXT=META.X;")
+    rep("{d:POOL[EXT[t].i],c:EXT[t].c}", "{d:EXT[t].d,c:EXT[t].c}")
+    a = js.index("function STK(){"); b = js.index("\n", a)
+    js = js[:a] + "function STK(){return _ST||(_ST=Object.keys(RAW).map(t=>{const m=RAW[t];return{t,nm:CO[t][0],mom:m.mom,y:m.y,dd:m.dd,v:m.v,b:m.b,rsi:m.rsi}}))}" + js[b:]
+    rep("const o=RD.map(d=>{", "const o=RD.slice(-W2).map(d=>{")
+    rep("const L=RD.length,V=Array(L).fill(0);", "const L=Math.min(W2,RD.length),V=Array(L).fill(0);")
+    rep("V=Array(RD.length).fill(0)", "V=Array(Math.min(W2,RD.length)).fill(0)")
+    rep("'2Y':730,'5Y':1826}", "'2Y':730,'5Y':1826,'10Y':3653}")
+    rep("'2Y','5Y'].map(g=>", "'2Y','5Y','10Y'].map(g=>")
+    rep("['1M','3M','6M','1Y','2Y','5Y'],XR)", "['1M','3M','6M','1Y','2Y','5Y','10Y'],XR)")
+    rep("{'1D':130,'1W':104,'1M':24}", "{'1D':130,'1W':156,'1M':120}")
+    rep("function render(){", """const W2=504,LD={},fnm=t=>t.replace(/[^A-Za-z0-9-]/g,'_');
+function load(t){const o=A(t);return LD[t]||(LD[t]=fetch('data/'+(RAW[t]?'s/':'x/')+fnm(t)+'.json?v='+META.v).then(r=>{if(!r.ok)throw Error(t+' '+r.status);return r.json()}).then(j=>{Object.assign(o,j);o._ok=1}).catch(e=>{delete LD[t];throw e}))}
+function reqs(){if(tab==0)return[ac,...MON];if(tab==3)return[...SEL,'^VIX'];if(tab==4)return PF.map(h=>h.t);if(tab==2){const n=JOBS[JOB][0];return /^Risk/.test(n)?['^VIX','^TNX','^IRX']:/^Macro/.test(n)?['^IRX','^FVX','^TNX','^TYX',...MON]:/^Wealth/.test(n)?MT:/^Crypto/.test(n)?Object.keys(EXT).filter(t=>EXT[t].g=='Crypto'):/^Corporate/.test(n)?Object.keys(EXT).filter(t=>EXT[t].g=='Currency'):[]}return[]}
+function render(){const m=reqs().filter(t=>A(t)&&!A(t)._ok);if(!m.length)return render0();$('#v').innerHTML='<p class="mu m">Loading '+m.length+' series\\u2026</p>';Promise.all(m.map(load)).then(render0,e=>{$('#v').innerHTML='<p class="dn">Could not load data ('+e.message+'). Refresh to try again.</p>'})}
+function render0(){""")
+    boot = ("<script>\nfetch('data/meta.json?v=/*STAMPV*/').then(r=>r.json()).then(j=>{window.META=j;const s=document.createElement('script');"
+            "s.src='app.js?v='+j.v;document.body.appendChild(s)}).catch(e=>{document.getElementById('v').innerHTML='<p>Could not load market data: '+e.message+'</p>'});\n</script>")
+    html = html.replace("@@BOOT@@", boot).replace('<main id="v"></main>', '<main id="v"><p class="mu m">Loading market data…</p></main>')
+    return html, js
+
+def rsi(c):
+    d = np.diff(c[-15:]); g = d[d > 0].sum(); l = -d[d < 0].sum()
+    return 100 - 100 / (1 + (g or .01) / (l or .01))
+
 def build():
-    D = json.load(open("sp500.json")); E = json.load(open("extra.json")); HS = json.load(open("housing.json"))
+    D = json.load(open(path("sp500"))); E = json.load(open(path("extra"))); HS = json.load(open(path("housing")))
+    out = "public"; os.makedirs(f"{out}/data/s", exist_ok=True); os.makedirs(f"{out}/data/x", exist_ok=True)
+    fn = lambda t: re.sub(r"[^A-Za-z0-9-]", "_", t)
     master = max((v["d"] for v in D.values()), key=len)
     C = pd.DataFrame({t: pd.Series(v["c"], index=v["d"]) for t, v in D.items()}).reindex(master)
     ret = C.pct_change(); mkt = ret.mean(axis=1)
+    S = {}
     for t, v in D.items():
-        r = ret[t].dropna().tail(250); m = mkt.loc[r.index]
-        v["b"] = round(float(np.cov(r, m)[0, 1] / np.var(m, ddof=1)), 2)
-        v["v"] = round(float(ret[t].dropna().tail(60).std() * np.sqrt(252) * 100), 1)
-        if v["d"] == master: del v["d"]
-    pool, pidx, X = [], {}, {}
+        r = ret[t].dropna().tail(250); m = mkt.loc[r.index]; c = v["c"]; n = len(c)
+        S[t] = {"n": v["n"], "p": c[-1], "b": round(float(np.cov(r, m)[0, 1] / np.var(m, ddof=1)), 2),
+                "v": round(float(ret[t].dropna().tail(60).std() * np.sqrt(252) * 100), 1),
+                "mom": round((c[n-22] / c[n-253] - 1) * 100, 2) if n > 253 else None,
+                "y": round((c[-1] / c[-253] - 1) * 100, 2) if n > 252 else None,
+                "dd": round((c[-1] / max(c[-252:]) - 1) * 100, 2), "rsi": round(rsi(np.array(c)), 1)}
+        f = {k: v[k] for k in "ohlc"}
+        if v["d"] != master: f["d"] = v["d"]
+        json.dump(f, open(f"{out}/data/s/{fn(t)}.json", "w"), separators=(",", ":"))
+    X = {}
     for g, grp in E.items():
         for t, x in grp.items():
-            k = tuple(x["d"])
-            if k not in pidx: pidx[k] = len(pool); pool.append(x["d"])
             s = pd.Series(x["c"], index=x["d"])
             r = s.reindex(master).dropna().pct_change().dropna().tail(250); m = mkt.reindex(r.index)
             own = s.pct_change().dropna().tail(60)
-            X[t] = {"g": GL[g], "n": NM.get(t, t), "i": pidx[k],
-                    "c": [round(z, 4 if min(x["c"]) < 5 else 2) for z in x["c"]],
+            c = [round(z, 4 if min(x["c"]) < 5 else 2) for z in x["c"]]
+            X[t] = {"g": GL[g], "n": NM.get(t, t), "p": c[-1],
                     "b": round(float(np.cov(r, m)[0, 1] / np.var(m, ddof=1)), 2),
                     "v": round(float(own.std() * np.sqrt(365 if g == "Crypto" else 252) * 100), 1)}
-    s = open("template.html").read()
-    for tok, val in [("/*RAW*/{}", J(D)), ("/*RD*/[]", J(master)), ("/*HS*/{}", J(HS)), ("/*EXT*/{}", J(X)), ("/*POOL*/[]", J(pool)),
-                     ("/*STAMP*/", datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))]:
-        assert tok in s, tok; s = s.replace(tok, val)
-    os.makedirs("public", exist_ok=True)
-    open("public/index.html", "w").write(s)
-    print("Built public/index.html", round(len(s) / 1e6, 1), "MB")
+            json.dump({"d": x["d"], "c": c}, open(f"{out}/data/x/{fn(t)}.json", "w"), separators=(",", ":"))
+    now = datetime.datetime.now(datetime.timezone.utc); v = now.strftime("%Y%m%d%H%M")
+    json.dump({"v": v, "RD": master, "S": S, "X": X, "HS": HS}, open(f"{out}/data/meta.json", "w"), separators=(",", ":"))
+    html, js = split_template()
+    html = html.replace("/*STAMP*/", now.strftime("%Y-%m-%d %H:%M UTC")).replace("/*STAMPV*/", v)
+    open(f"{out}/index.html", "w").write(html)
+    open(f"{out}/app.js", "w").write(js)
+    size = sum(os.path.getsize(os.path.join(d, f)) for d, _, fs in os.walk(out) for f in fs)
+    print(f"Built {out}/: {len(S)} stocks, {len(X)} other assets, {size/1e6:.1f} MB total, meta {os.path.getsize(out+'/data/meta.json')/1e3:.0f} KB")
 
 if __name__ == "__main__":
     if "--build" not in sys.argv:

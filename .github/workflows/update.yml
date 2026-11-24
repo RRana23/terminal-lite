@@ -1,10 +1,12 @@
 name: Nightly data update
 on:
   schedule:
-    - cron: "17 23 * * 1-5"
+    - cron: "17 23 * * 1-5"   # weekdays about 6-7 pm New York time
   workflow_dispatch:
+  push:
+    branches: [main]          # also rebuild whenever the code changes
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 concurrency: { group: pages, cancel-in-progress: true }
@@ -17,15 +19,13 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install yfinance pandas numpy requests lxml
+      - uses: actions/cache@v4          # last good data, so a failed fetch never breaks the site
+        with:
+          path: cache
+          key: data-${{ github.run_id }}
+          restore-keys: data-
       - run: python update.py
         env: { FRED_API_KEY: "${{ secrets.FRED_API_KEY }}" }
-      - name: Save data for tomorrow's fallback
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add sp500.json extra.json housing.json
-          git commit -m "Update data $(date -u +%F)" || echo "No changes"
-          git push
       - uses: actions/upload-pages-artifact@v3
         with: { path: public }
       - id: deploy
