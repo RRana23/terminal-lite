@@ -70,22 +70,41 @@ def _one(t):
                 return t, d
         except Exception:
             pass
-        time.sleep(2 + 3 * attempt)
+        time.sleep(1 + 2 * attempt)
     return t, None
+
+
+def _run(syms, one, label, workers=4, chunk=40, retry_cap=80, retry_secs=240):
+    """Fetch in chunks with progress in the log. Stops early if Yahoo refuses most requests (keeps the
+    previous copy), then gives a short, time-limited second pass to names that failed."""
+    got = {}
+    with ThreadPoolExecutor(workers) as pool:
+        for i in range(0, len(syms), chunk):
+            part = syms[i:i + chunk]
+            res = dict(pool.map(one, part))
+            got.update(res)
+            ok_part, ok_all = sum(1 for v in res.values() if v), sum(1 for v in got.values() if v)
+            print(f"{label}: {len(got)}/{len(syms)} checked, {ok_all} ok", flush=True)
+            if ok_part < 0.25 * len(part) and ok_all < 0.25 * len(got):
+                print(f"{label}: Yahoo is refusing most requests right now; stopping early and keeping the previous copy", flush=True)
+                return got, True
+    miss = [t for t in syms if not got.get(t)]
+    if 0 < len(miss) <= retry_cap:
+        t0 = time.time()
+        for t in miss:
+            if time.time() - t0 > retry_secs: break
+            time.sleep(1.5)
+            got[t] = one(t)[1]
+    return got, False
 
 
 def fetch(ctx):
     prev = (ctx.get("prev") or {}).get("d", {})
     today = datetime.date.today().isoformat()
     cut = (datetime.date.today() - datetime.timedelta(days=KEEP_DAYS)).isoformat()
-    out, fails, got = {}, 0, {}
-    with ThreadPoolExecutor(4) as pool:
-        for t, d in pool.map(_one, ctx["syms"]):
-            got[t] = d
-    miss = [t for t, d in got.items() if not d]
-    for t in miss:  # second, slower pass for names Yahoo throttled
-        time.sleep(1.5)
-        got[t] = _one(t)[1]
+    out, fails = {}, 0
+    got, stopped = _run(list(ctx["syms"]), _one, "Estimates")
+    miss = [t for t in ctx["syms"] if not got.get(t)]
     for t in ctx["syms"]:
         d, old = got.get(t), prev.get(t) or {}
         if not d:
@@ -102,7 +121,7 @@ def fetch(ctx):
             else: s.append([today, cur])
         d["h"] = h
         out[t] = d
-    print(f"Estimates: {len(out)} tickers ({len(miss)} retried, {fails} still failed; previous copy kept where available)")
+    print(f"Estimates: {len(out)} tickers ({fails} failed; previous copy kept where available)")
     return {"asof": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "d": out}
 
 

@@ -73,8 +73,32 @@ def _one(t):
                 return t, rec
         except Exception:
             pass
-        time.sleep(2 + 3 * attempt)
+        time.sleep(1 + 2 * attempt)
     return t, None
+
+
+def _run(syms, one, label, workers=4, chunk=40, retry_cap=80, retry_secs=240):
+    """Fetch in chunks with progress in the log. Stops early if Yahoo refuses most requests (keeps the
+    previous copy), then gives a short, time-limited second pass to names that failed."""
+    got = {}
+    with ThreadPoolExecutor(workers) as pool:
+        for i in range(0, len(syms), chunk):
+            part = syms[i:i + chunk]
+            res = dict(pool.map(one, part))
+            got.update(res)
+            ok_part, ok_all = sum(1 for v in res.values() if v), sum(1 for v in got.values() if v)
+            print(f"{label}: {len(got)}/{len(syms)} checked, {ok_all} ok", flush=True)
+            if ok_part < 0.25 * len(part) and ok_all < 0.25 * len(got):
+                print(f"{label}: Yahoo is refusing most requests right now; stopping early and keeping the previous copy", flush=True)
+                return got, True
+    miss = [t for t in syms if not got.get(t)]
+    if 0 < len(miss) <= retry_cap:
+        t0 = time.time()
+        for t in miss:
+            if time.time() - t0 > retry_secs: break
+            time.sleep(1.5)
+            got[t] = one(t)[1]
+    return got, False
 
 
 def fetch(ctx):
@@ -82,20 +106,14 @@ def fetch(ctx):
     now = datetime.datetime.now(datetime.timezone.utc)
     if prev.get("_ts") and len(prev.get("d", {})) >= 400 and (now - datetime.datetime.fromisoformat(prev["_ts"])).days < 6:
         print("Credit and dividends: using this week's copy"); return prev
-    old, out, miss = prev.get("d", {}), {}, []
-    with ThreadPoolExecutor(4) as pool:
-        for t, d in pool.map(_one, ctx["syms"]):
-            if d: out[t] = d
-            else: miss.append(t)
-    retry = []
-    for t in miss:  # second, slower pass for names Yahoo throttled
-        time.sleep(1.5)
-        _, d = _one(t)
-        if d: out[t] = d
+    old, out, fails = prev.get("d", {}), {}, 0
+    got, stopped = _run(list(ctx["syms"]), _one, "Credit and dividends")
+    for t in ctx["syms"]:
+        if got.get(t): out[t] = got[t]
         else:
-            retry.append(t)
+            fails += 1
             if t in old: out[t] = old[t]
-    print(f"Credit and dividends: {len(out)} tickers ({len(miss)} retried, {len(retry)} still failed; previous copy kept where available)")
+    print(f"Credit and dividends: {len(out)} tickers ({fails} failed; previous copy kept where available)")
     return {"_ts": now.isoformat(), "d": out}
 
 
