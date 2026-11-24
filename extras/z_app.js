@@ -34,7 +34,7 @@ const b=document.createElement('button');b.id='helpbtn';b.textContent='?';b.titl
 {const h=document.createElement('div');h.id='help';h.setAttribute('role','dialog');h.setAttribute('aria-modal','true');h.setAttribute('aria-label','Commands and shortcuts');
 const rows=Object.entries(FN).filter(([k])=>!['GO','N','GRP','WEI'].includes(k)).map(([k,v])=>['<code>'+(v[1]?'NVDA ':'')+(k=='G'?'NVDA AMD MSFT':k=='OMON'?'SPY OMON':k)+'</code>',v[0]]);
 h.innerHTML='<div class="sheet" tabindex="-1"><h2>Commands</h2><p class="mu">Type in the bar at the top and press Enter. A ticker on its own opens its chart. Index names work too: SPX, VIX, BTC, EURUSD.</p>'+T(['Type','Opens'],rows)
-+'<h2 style="margin-top:16px">Shortcuts</h2>'+T(['Key','Does'],[['<kbd>/</kbd> or <kbd>⌘K</kbd>','Jump to the command bar'],['<kbd>1</kbd> to <kbd>8</kbd>','Switch tabs, left to right'],['<kbd>?</kbd>','Open this list'],['<kbd>Esc</kbd>','Close this list or leave the command bar']])
++'<h2 style="margin-top:16px">Shortcuts</h2>'+T(['Key','Does'],[['<kbd>/</kbd> or <kbd>⌘K</kbd>','Jump to the command bar'],['<kbd>1</kbd> to <kbd>9</kbd>','Switch tabs, left to right'],['<kbd>?</kbd>','Open this list'],['<kbd>Esc</kbd>','Close this list or leave the command bar']])
 +'<h2 style="margin-top:16px">Install as an app</h2><p class="mu">Chrome: the install icon at the right end of the address bar. Safari on Mac: File, then Add to Dock. It opens in its own window with a dock icon.</p><p><button class="in" id="helpclose">Close</button></p></div>';
 document.body.append(h);h.addEventListener('click',e=>{if(e.target==h||e.target.id=='helpclose')helpClose()})}
 function helpOpen(){$('#help').classList.add('open');const s=$('#help .sheet');s.scrollTop=0;s.focus()}
