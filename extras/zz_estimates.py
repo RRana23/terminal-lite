@@ -78,25 +78,31 @@ def fetch(ctx):
     prev = (ctx.get("prev") or {}).get("d", {})
     today = datetime.date.today().isoformat()
     cut = (datetime.date.today() - datetime.timedelta(days=KEEP_DAYS)).isoformat()
-    out, fails = {}, 0
+    out, fails, got = {}, 0, {}
     with ThreadPoolExecutor(4) as pool:
         for t, d in pool.map(_one, ctx["syms"]):
-            old = prev.get(t) or {}
-            if not d:
-                fails += 1
-                if old: out[t] = old
-                continue
-            # nightly snapshot of the current consensus for this fiscal year and next
-            h = {k: [x for x in v if x[0] >= cut] for k, v in (old.get("h") or {}).items()}
-            for p in ("0y", "+1y"):
-                cur = (d["tr"].get(p) or [None])[0]
-                if cur is None: continue
-                s = h.setdefault(p, [])
-                if s and s[-1][0] == today: s[-1] = [today, cur]
-                else: s.append([today, cur])
-            d["h"] = h
-            out[t] = d
-    print(f"Estimates: {len(out)} tickers ({fails} fetch failures, previous copy kept where available)")
+            got[t] = d
+    miss = [t for t, d in got.items() if not d]
+    for t in miss:  # second, slower pass for names Yahoo throttled
+        time.sleep(1.5)
+        got[t] = _one(t)[1]
+    for t in ctx["syms"]:
+        d, old = got.get(t), prev.get(t) or {}
+        if not d:
+            fails += 1
+            if old: out[t] = old
+            continue
+        # nightly snapshot of the current consensus for this fiscal year and next
+        h = {k: [x for x in v if x[0] >= cut] for k, v in (old.get("h") or {}).items()}
+        for p in ("0y", "+1y"):
+            cur = (d["tr"].get(p) or [None])[0]
+            if cur is None: continue
+            s = h.setdefault(p, [])
+            if s and s[-1][0] == today: s[-1] = [today, cur]
+            else: s.append([today, cur])
+        d["h"] = h
+        out[t] = d
+    print(f"Estimates: {len(out)} tickers ({len(miss)} retried, {fails} still failed; previous copy kept where available)")
     return {"asof": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "d": out}
 
 

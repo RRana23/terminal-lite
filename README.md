@@ -17,12 +17,15 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | FA | `NVDA FA` | 5 years of income statement, cash flow and balance sheet, copy to Excel |
 | DCF / WACC | `NVDA DCF`, `NVDA WACC` | Five-year DCF seeded from the statements, CAPM cost of equity with adjusted beta, WACC, terminal value, sensitivity grid |
 | EE / ANR | `NVDA EST`, `NVDA ANR` | EPS estimate trend and revisions, consensus EPS and revenue, ratings, price targets, upgrades and downgrades, biggest estimate changes |
+| Leverage / CRPR | `NVDA LEV` | Net debt/EBITDA, interest coverage, synthetic rating, Altman Z, liquidity, five years of debt and cash, peers |
+| DVD (single stock) | `NVDA DVD` | Dividend yield, payout ratios, 5-year growth, consecutive increases, payment history, cash returned, S&P 500 dividend leaders |
 | CF | `NVDA CF` | SEC filings with links |
 | HDS | `NVDA HDS` | Institutional and mutual fund holders |
 | Insider screens | `NVDA INS` | Recent insider trades |
 | RV | `NVDA RV` | Industry comps, implied value at peer median, possible acquirers |
 | EQS | `EQS` | S&P 500 screener and factor scores |
 | OMON / OSA | `SPY OMON` | Options chains for 71 names, IV smile and term structure, max pain, strategy payoff builder |
+| NFP / ECST | `JOBS` | Payrolls by month and sector, U-3 and U-6 unemployment, participation, wages vs inflation, jobless claims, openings, Sahm rule |
 | GC | `GC` | Treasury yield curve vs 1 month, 1 year and 5 years ago; yield, curve and credit spread history; inversion signals |
 | YAS | `YAS` | Bond calculator: price, duration, convexity, DV01, spread to Treasuries, price-yield chart |
 | TOP / CN | `TOP`, `NVDA CN` | Market and company headlines |
@@ -39,7 +42,7 @@ flowchart LR
   A[GitHub Actions<br/>weeknights 6-7 pm ET] --> B[update.py]
   B -->|prices, fundamentals, estimates,<br/>options, news, holders| Y[Yahoo Finance]
   B -->|statements, filings| S[SEC EDGAR]
-  B -->|inflation, housing, yields,<br/>credit spreads, calendar| F[FRED, Zillow]
+  B -->|inflation, housing, jobs, yields,<br/>credit spreads, calendar| F[FRED, Zillow]
   B --> C[(cache: last good data)]
   B --> P[public/: page shell, app.js,<br/>meta.json, one file per ticker]
   P --> G[GitHub Pages]
@@ -58,7 +61,7 @@ flowchart LR
 |---|---|
 | `template.html` | Core page and app code |
 | `update.py` | Fetches data and builds `public/` |
-| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, DCF, estimates, live prices, design, command bar, guide, about, tab order |
+| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, jobs, DCF, estimates, credit and dividends, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
 

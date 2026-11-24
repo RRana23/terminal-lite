@@ -1,0 +1,7 @@
+/* Credit and Dividends views on the Company tab */
+.ccap{margin-top:8px;font:12px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+table.ct td,table.ct th{text-align:right;white-space:nowrap}
+table.ct td:first-child,table.ct th:first-child{text-align:left;white-space:normal;font-family:'IBM Plex Sans',system-ui,sans-serif}
+table.cp td:nth-child(2),table.cp th:nth-child(2){text-align:left;white-space:normal;font-family:'IBM Plex Sans',system-ui,sans-serif}
+table.cl td,table.cl th{padding-top:4px;padding-bottom:4px}
+.ca{color:var(--am)}
