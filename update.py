@@ -1,7 +1,7 @@
 """Fetch market + housing data and build the site into public/.
 Usage: python update.py          (fetch everything, then build)
        python update.py --build  (build from cached/seed data only)"""
-import io, json, os, re, sys, datetime
+import glob, importlib, io, json, os, re, shutil, sys, datetime
 import numpy as np, pandas as pd, requests
 
 H = {"User-Agent": "Mozilla/5.0"}
@@ -79,7 +79,7 @@ def path(name):
     c = f"{CACHE}/{name}.json"
     return c if os.path.exists(c) else f"{name}.json"
 
-def save_if_ok(name, fn, ok):
+def save_if_ok(name, fn, ok, required=True):
     """Keep the previous file if today's fetch fails or looks broken."""
     try:
         v = fn()
@@ -87,7 +87,15 @@ def save_if_ok(name, fn, ok):
         print(name, "looked incomplete, keeping previous file")
     except Exception as e:
         print(name, "failed:", e)
-    if not os.path.exists(path(name)): raise SystemExit(f"No data for {name}")
+    if required and not os.path.exists(path(name)): raise SystemExit(f"No data for {name}")
+
+# Add-on modules: each extras/<name>.py has NAME, fetch(ctx), ok(data), build(data, meta, out),
+# and an optional extras/<name>.js loaded in the browser after app.js.
+EXTRAS = [importlib.import_module("extras." + os.path.basename(p)[:-3]) for p in sorted(glob.glob("extras/*.py"))]
+
+def load(name):
+    p = path(name)
+    return json.load(open(p)) if os.path.exists(p) else None
 
 # ---------- build ----------
 NM = {'^GSPC':'S&P 500','^DJI':'Dow Jones','^IXIC':'Nasdaq Composite','^RUT':'Russell 2000','^VIX':'VIX','^FTSE':'FTSE 100','^N225':'Nikkei 225','^GDAXI':'DAX','^HSI':'Hang Seng','^STOXX50E':'Euro Stoxx 50',
@@ -125,8 +133,9 @@ function load(t){const o=A(t);return LD[t]||(LD[t]=fetch('data/'+(RAW[t]?'s/':'x
 function reqs(){if(tab==0)return[ac,...MON];if(tab==3)return[...SEL,'^VIX'];if(tab==4)return PF.map(h=>h.t);if(tab==2){const n=JOBS[JOB][0];return /^Risk/.test(n)?['^VIX','^TNX','^IRX']:/^Macro/.test(n)?['^IRX','^FVX','^TNX','^TYX',...MON]:/^Wealth/.test(n)?MT:/^Crypto/.test(n)?Object.keys(EXT).filter(t=>EXT[t].g=='Crypto'):/^Corporate/.test(n)?Object.keys(EXT).filter(t=>EXT[t].g=='Currency'):[]}return[]}
 function render(){const m=reqs().filter(t=>A(t)&&!A(t)._ok);if(!m.length)return render0();$('#v').innerHTML='<p class="mu m">Loading '+m.length+' series\\u2026</p>';Promise.all(m.map(load)).then(render0,e=>{$('#v').innerHTML='<p class="dn">Could not load data ('+e.message+'). Refresh to try again.</p>'})}
 function render0(){""")
-    boot = ("<script>\nfetch('data/meta.json?v=/*STAMPV*/').then(r=>r.json()).then(j=>{window.META=j;const s=document.createElement('script');"
-            "s.src='app.js?v='+j.v;document.body.appendChild(s)}).catch(e=>{document.getElementById('v').innerHTML='<p>Could not load market data: '+e.message+'</p>'});\n</script>")
+    boot = ("<script>\nfetch('data/meta.json?v=/*STAMPV*/').then(r=>r.json()).then(j=>{window.META=j;const L=/*SCRIPTS*/;"
+            "(function n(i){if(i>=L.length)return;const s=document.createElement('script');s.src=L[i]+'?v='+j.v;s.onload=()=>n(i+1);document.body.appendChild(s)})(0)})"
+            ".catch(e=>{document.getElementById('v').innerHTML='<p>Could not load market data: '+e.message+'</p>'});\n</script>")
     html = html.replace("@@BOOT@@", boot).replace('<main id="v"></main>', '<main id="v"><p class="mu m">Loading market data…</p></main>')
     return html, js
 
@@ -164,9 +173,16 @@ def build():
                     "v": round(float(own.std() * np.sqrt(365 if g == "Crypto" else 252) * 100), 1)}
             json.dump({"d": x["d"], "c": c}, open(f"{out}/data/x/{fn(t)}.json", "w"), separators=(",", ":"))
     now = datetime.datetime.now(datetime.timezone.utc); v = now.strftime("%Y%m%d%H%M")
-    json.dump({"v": v, "RD": master, "S": S, "X": X, "HS": HS}, open(f"{out}/data/meta.json", "w"), separators=(",", ":"))
+    meta = {"v": v, "RD": master, "S": S, "X": X, "HS": HS}
+    scripts = ["app.js"]
+    for m in EXTRAS:
+        m.build(load(m.NAME), meta, out)
+        js_file = f"extras/{m.NAME}.js"
+        if os.path.exists(js_file):
+            os.makedirs(f"{out}/extras", exist_ok=True); shutil.copy(js_file, f"{out}/{js_file}"); scripts.append(js_file)
+    json.dump(meta, open(f"{out}/data/meta.json", "w"), separators=(",", ":"))
     html, js = split_template()
-    html = html.replace("/*STAMP*/", now.strftime("%Y-%m-%d %H:%M UTC")).replace("/*STAMPV*/", v)
+    html = html.replace("/*STAMP*/", now.strftime("%Y-%m-%d %H:%M UTC")).replace("/*STAMPV*/", v).replace("/*SCRIPTS*/", J(scripts))
     open(f"{out}/index.html", "w").write(html)
     open(f"{out}/app.js", "w").write(js)
     size = sum(os.path.getsize(os.path.join(d, f)) for d, _, fs in os.walk(out) for f in fs)
@@ -177,4 +193,7 @@ if __name__ == "__main__":
         save_if_ok("sp500", fetch_sp500, lambda v: len(v) > 450)
         save_if_ok("extra", fetch_extra, lambda v: sum(len(x) for x in v.values()) > 100)
         save_if_ok("housing", fetch_housing, lambda v: len(v["fred"]) == len(FRED) and len(v["zillow"]) == 3)
+        syms = list(load("sp500") or {})
+        for m in EXTRAS:
+            save_if_ok(m.NAME, lambda m=m: m.fetch({"syms": syms, "prev": load(m.NAME)}), m.ok, required=False)
     build()
