@@ -16,13 +16,13 @@ const tt=T(['Period','Now','7 days ago','30 days ago','60 days ago','90 days ago
 const rvt=T(['Period','Up 7d','Up 30d','Down 7d','Down 30d'],EPK.filter(p=>rv[p]).map(p=>{const r=rv[p];return[EPL[p],'<span class="up">'+eN(r[0])+'</span>','<span class="up">'+eN(r[1])+'</span>','<span class="dn">'+eN(r[2])+'</span>','<span class="dn">'+eN(r[3])+'</span>']})).replace('<table','<table class="et"');
 // ratings
 let rat='<p class="mu">No ratings.</p>';if(e.rec&&e.rec.length){const nm=['Strong buy','Buy','Hold','Sell','Strong sell'],cl=['esb','eb','eh','es','ess'],r0=e.rec[0].slice(1),n=r0.reduce((a,b)=>a+b,0),sc=n?r0.reduce((a,v,i)=>a+v*(i+1),0)/n:null,lab=sc==null?'–':sc<1.75?'Strong buy':sc<2.5?'Buy':sc<3.5?'Hold':sc<4.25?'Sell':'Strong sell';
-const stack=r=>{const m=r.reduce((a,b)=>a+b,0)||1;return'<div class="estk">'+r.map((v,i)=>v?'<i class="'+cl[i]+'" style="width:'+(v/m*100).toFixed(1)+'%" title="'+nm[i]+': '+v+'"></i>':'').join('')+'</div>'};
+const stack=r=>{const m=r.reduce((a,b)=>a+b,0)||1;return'<div class="estk">'+r.map((v,i)=>v?'<i class="'+cl[i]+'" style="width:'+(v/m*100).toFixed(1)+'%"></i>':'').join('')+'</div>'};
 const mo=p=>p=='0m'?'This month':p.replace('-','').replace('m',' mo ago');
 rat='<div class="ebig"><b>'+lab+'</b><span class="mu">'+(sc?f(sc,2)+' on a 1 (strong buy) to 5 (strong sell) scale · ':'')+n+' analysts</span></div>'+stack(r0)
 +'<div class="eleg">'+nm.map((x,i)=>'<span><i class="'+cl[i]+'"></i>'+x+' '+r0[i]+'</span>').join('')+'</div>'
-+'<div class="erec">'+e.rec.map(r=>'<div><span class="mu">'+mo(r[0])+'</span>'+stack(r.slice(1))+'</div>').join('')+'</div>'}
++'<div class="erec">'+e.rec.map(r=>'<div data-tip="'+esc(chRecTip(mo(r[0]),r.slice(1)))+'"><span class="mu">'+mo(r[0])+'</span>'+stack(r.slice(1))+'</div>').join('')+'</div>'}
 let ptx='';const pt=e.pt||{};if(pt.low&&pt.high&&pt.high>pt.low){const lo=Math.min(pt.low,px),hi=Math.max(pt.high,px),X=v=>((v-lo)/(hi-lo)*100).toFixed(1)+'%',up=pt.mean&&px?pt.mean/px-1:null;
-ptx='<h4 class="eh4">Price targets</h4><div class="ept"><div class="eptr" style="left:'+X(pt.low)+';right:'+(100-parseFloat(X(pt.high)))+'%"></div><i class="epx" style="left:'+X(px)+'" title="Price"></i>'+(pt.mean?'<i class="epm" style="left:'+X(pt.mean)+'" title="Mean target"></i>':'')+'</div>'
+ptx='<h4 class="eh4">Price targets</h4><div class="ept" data-tip="'+esc('<b>Analyst price targets</b>'+chRow('var(--mu)','Low',e$(pt.low))+(pt.mean?chRow('var(--am)','Mean',e$(pt.mean)):'')+(pt.median?chRow('var(--mu)','Median',e$(pt.median)):'')+chRow('var(--mu)','High',e$(pt.high))+chRow('var(--tx)','Price now',e$(px)))+'"><div class="eptr" style="left:'+X(pt.low)+';right:'+(100-parseFloat(X(pt.high)))+'%"></div><i class="epx" style="left:'+X(px)+'"></i>'+(pt.mean?'<i class="epm" style="left:'+X(pt.mean)+'"></i>':'')+'</div>'
 +'<div class="eptl"><span>Low '+e$(pt.low)+'</span><span>High '+e$(pt.high)+'</span></div>'+'<div class="mu ecap" style="margin:0 0 6px">Grey bar: analysts’ range. Dark tick: price. Amber tick: mean target.</div>'+KV('Mean target',e$(pt.mean)+(up!=null?' <span class="'+(up>0?'up':'dn')+'">('+eP(up)+')</span>':''))+KV('Median target',e$(pt.median))+KV('Price',e$(px))}
 // detail tables
 const det=(rows,fmt,ya)=>T(['Period','Average','Low','High','Analysts',ya,'Growth'],EPK.filter(p=>rows[p]).map(p=>{const r=rows[p];return[EPL[p],'<b>'+fmt(r[0])+'</b>',fmt(r[1]),fmt(r[2]),eN(r[3]),fmt(r[4]),'<span class="'+(r[5]>0?'up':r[5]<0?'dn':'mu')+'">'+eP(r[5])+'</span>']})).replace('<table','<table class="et"');
@@ -42,14 +42,15 @@ const hd=['','Company','30-day change','Up / down'];
 return P('Biggest estimate changes in the S&P 500, last 30 days','<h4 class="eh4">Raised the most</h4>'+T(hd,a.slice(0,6).map(row)).replace('<table','<table class="et emk"')+'<h4 class="eh4">Cut the most</h4>'+T(hd,a.slice(-6).reverse().map(row)).replace('<table','<table class="et emk"')+'<div class="mu ecap">Change in the current fiscal-year EPS estimate. Click a ticker to open its estimates.</div>',c)}
 function estChart(){const el=$('#ech'),e=ESTC[cur];if(!el||!e||!e.tr)return;const asof=(ESTM.asof||'').slice(0,10)||new Date().toISOString().slice(0,10),base=Date.parse(asof),day=864e5;
 const ser=p=>{const m=new Map(),r=e.tr[p];if(r)[0,7,30,60,90].forEach((d,i)=>{if(r[i]!=null)m.set(new Date(base-d*day).toISOString().slice(0,10),r[i])});((e.h||{})[p]||[]).forEach(([d,v])=>{if(v!=null)m.set(d,v)});return[...m].sort((a,b)=>a[0]<b[0]?-1:1)};
-const S2=[[ser('0y'),'var(--am)'],[ser('+1y'),'var(--up)']].filter(s=>s[0].length>1);if(!S2.length){el.innerHTML='<p class="mu">Not enough history yet.</p>';return}
+const S2=[[ser('0y'),'var(--am)','This fiscal year'],[ser('+1y'),'var(--up)','Next fiscal year']].filter(s=>s[0].length>1);if(!S2.length){el.innerHTML='<p class="mu">Not enough history yet.</p>';return}
 const all=S2.flatMap(s=>s[0]),ts=all.map(p=>Date.parse(p[0])),vs=all.map(p=>p[1]),t0=Math.min(...ts),t1=Math.max(...ts);let lo=Math.min(...vs),hi=Math.max(...vs);const pad=(hi-lo)*.15||Math.abs(hi)*.05||.1;lo-=pad;hi+=pad;
 const w=Math.max(260,el.clientWidth),h=220,l=54,r=14,t=10,b=24,X=d=>l+(Date.parse(d)-t0)/((t1-t0)||1)*(w-l-r),Y=v=>t+(hi-v)/(hi-lo)*(h-t-b);
 let s='<svg width="'+w+'" height="'+h+'" role="img" aria-label="EPS estimates over time">';
 rTicks(lo,hi).forEach(v=>{s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" style="stroke:var(--ln)"/>'+rTx(l-6,Y(v)+4,e$(v),'end')});
 const nl=Math.max(2,Math.min(5,Math.floor((w-l)/120)));for(let j=0;j<nl;j++){const d=new Date(t0+(t1-t0)*j/(nl-1)).toISOString().slice(0,10);s+=rTx(X(d),h-6,rMon(d).slice(0,3)+' '+(+d.slice(8)),j==0?'start':j==nl-1?'end':'middle')}
-S2.forEach(([p,c])=>{s+='<path d="'+p.map((q,i)=>(i?'L':'M')+X(q[0]).toFixed(1)+' '+Y(q[1]).toFixed(1)).join('')+'" fill="none" style="stroke:'+c+'" stroke-width="2"/>'+p.map(q=>'<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="3" style="fill:'+c+'"><title>'+q[0]+': '+e$(q[1])+'</title></circle>').join('')});
-el.innerHTML=s+'</svg>'}
+S2.forEach(([p,c])=>{s+='<path d="'+p.map((q,i)=>(i?'L':'M')+X(q[0]).toFixed(1)+' '+Y(q[1]).toFixed(1)).join('')+'" fill="none" style="stroke:'+c+'" stroke-width="2"/>'+p.map(q=>'<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="3" style="fill:'+c+'"/>').join('')});
+el.innerHTML=s+'</svg>';const ds=[...new Set(all.map(p=>p[0]))].sort(),at=(p,d)=>{let v=null;for(const q of p){if(q[0]<=d)v=q;else break}return v};
+chHover(el,ds.map(X),i=>'<b>'+chDay(ds[i])+'</b>'+S2.map(([p,c,n])=>{const q=at(p,ds[i]);return q?chRow(c,n+' EPS',e$(q[1])):''}).join(''),i=>S2.map(([p,c])=>{const q=at(p,ds[i]);return q?[X(q[0]),Y(q[1]),c]:null}).filter(Boolean),t,h-b)}
 // Company tab: add an Estimates view after DCF
 const _coE=company,EVL0=DVL1,EVL1=['Overview','Financials','DCF','Estimates','Filings','Ownership','Insiders','News','Events'];
 company=function(){if(!CO[cur])return _coE();if(CV!='Estimates')return _coE().replace(SG('cv',EVL0,CV),SG('cv',EVL1,CV));

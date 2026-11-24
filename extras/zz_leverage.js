@@ -40,8 +40,10 @@ function crBarsDraw(Y){const el=$('#crb');if(!el)return;const S=[['debt','var(--
 const w=Math.max(260,el.clientWidth),h=220,l=58,r=10,t=8,b=24,hi=Math.max(...vs)*1.08,lo=Math.min(0,...vs),gw=(w-l-r)/Y.length,bw=gw*.8/3,Yp=v=>t+(hi-v)/(hi-lo)*(h-t-b);
 let s='<svg width="'+w+'" height="'+h+'" role="img" aria-label="Debt, cash and EBITDA by year">';
 rTicks(lo,hi).forEach(v=>{s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Yp(v)+'" y2="'+Yp(v)+'" style="stroke:var(--ln)"/>'+rTx(l-6,Yp(v)+4,v?fbig(v).replace('.0B','B'):'$0','end')});
-Y.forEach((x,i)=>{S.forEach(([k,c],j)=>{const v=x[k];if(v==null)return;const y0=Yp(0),y1=Yp(v);s+='<rect x="'+(l+i*gw+gw*.1+j*bw).toFixed(1)+'" y="'+Math.min(y0,y1).toFixed(1)+'" width="'+(bw-2).toFixed(1)+'" height="'+Math.max(1,Math.abs(y1-y0)).toFixed(1)+'" style="fill:'+c+';opacity:.85"><title>FY'+x.yr+' '+k+': '+fbig(v)+'</title></rect>'});s+=rTx(l+i*gw+gw/2,h-6,'FY'+x.yr,'middle')});
-el.innerHTML=s+'</svg>'}
+Y.forEach((x,i)=>{S.forEach(([k,c],j)=>{const v=x[k];if(v==null)return;const y0=Yp(0),y1=Yp(v);s+='<rect x="'+(l+i*gw+gw*.1+j*bw).toFixed(1)+'" y="'+Math.min(y0,y1).toFixed(1)+'" width="'+(bw-2).toFixed(1)+'" height="'+Math.max(1,Math.abs(y1-y0)).toFixed(1)+'" style="fill:'+c+';opacity:.85"/>'});s+=rTx(l+i*gw+gw/2,h-6,'FY'+x.yr,'middle')});
+el.innerHTML=s+'</svg>';const NM={debt:'Total debt',cash:'Cash',ebitda:'EBITDA'};
+chHover(el,Y.map((_,i)=>l+i*gw+gw/2),i=>{const x=Y[i];return'<b>Fiscal year '+x.yr+'</b>'+S.map(([k,c])=>x[k]==null?'':chRow(c,NM[k],fbig(x[k]))).join('')+(x.debt!=null&&x.ebitda>0?chRow('transparent','Net debt / EBITDA',f((x.debt-(x.cash||0))/x.ebitda,1)+'x'):'')},
+i=>S.map(([k,c],j)=>Y[i][k]==null?null:[l+i*gw+gw*.1+j*bw+(bw-2)/2,Yp(Y[i][k]),c]).filter(Boolean),t,h-b)}
 // dividends
 function crDiv(){const e=CRC[cur],px=CO[cur][1],cal=(typeof EV!='undefined'&&EV.cal&&EV.cal[cur])||{};if(!e||e.none)return P('Dividends, '+cur,'<p class="mu">No dividend data for '+cur+' in this build.</p>','c12')+dvLists();
 const dv=e.dv||[],Y=(e.y||[]).length?crYears(e):[],L=Y.at(-1)||{},s=CRSM[cur]||{},pays=e.dp||[];
@@ -65,8 +67,9 @@ function dvDraw(dv){const el=$('#dvb');if(!el||!dv.length)return;const w=Math.ma
 let s='<svg width="'+w+'" height="'+h+'" role="img" aria-label="Dividends per share by year">';
 rTicks(0,hi).forEach(v=>{s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Yp(v)+'" y2="'+Yp(v)+'" style="stroke:var(--ln)"/>'+rTx(l-6,Yp(v)+4,'$'+f(v,2),'end')});
 const every=Math.ceil(dv.length/Math.max(2,Math.floor((w-l)/56)));
-dv.forEach(([y,v],i)=>{const up=i&&v>dv[i-1][1]*1.0001;s+='<rect x="'+(l+i*bw+bw*.15).toFixed(1)+'" y="'+Yp(v).toFixed(1)+'" width="'+(bw*.7).toFixed(1)+'" height="'+(Yp(0)-Yp(v)).toFixed(1)+'" style="fill:var(--am);opacity:'+(up||!i?.9:.45)+'"><title>'+y+': $'+f(v,2)+'</title></rect>';if(i%every==0||i==dv.length-1)s+=rTx(l+i*bw+bw/2,h-6,y,'middle')});
-el.innerHTML=s+'</svg><div class="mu ccap">Faded bars: years the dividend did not rise. Excludes the current, partial year.</div>'}
+dv.forEach(([y,v],i)=>{const up=i&&v>dv[i-1][1]*1.0001;s+='<rect x="'+(l+i*bw+bw*.15).toFixed(1)+'" y="'+Yp(v).toFixed(1)+'" width="'+(bw*.7).toFixed(1)+'" height="'+(Yp(0)-Yp(v)).toFixed(1)+'" style="fill:var(--am);opacity:'+(up||!i?.9:.45)+'"/>';if(i%every==0||i==dv.length-1)s+=rTx(l+i*bw+bw/2,h-6,y,'middle')});
+el.innerHTML=s+'</svg><div class="mu ccap">Faded bars: years the dividend did not rise. Excludes the current, partial year.</div>';
+chHover(el,dv.map((_,i)=>l+i*bw+bw/2),i=>{const[y,v]=dv[i],p=i?dv[i-1][1]:null;return'<b>'+y+'</b>'+chRow('var(--am)','Dividends per share','$'+f(v,2))+(p?chRow('transparent','Change from '+dv[i-1][0],chPct((v/p-1)*100)):'')},i=>[[l+i*bw+bw/2,Yp(dv[i][1]),'var(--am)']],t,h-b)}
 // Company tab: add Credit and Dividends views after Estimates
 const _coL=company,LVL0=EVL1,LVL1=['Overview','Financials','DCF','Estimates','Credit','Dividends','Filings','Ownership','Insiders','News','Events'];
 company=function(){if(!CO[cur])return _coL();if(CV!='Credit'&&CV!='Dividends')return _coL().replace(SG('cv',LVL0,CV),SG('cv',LVL1,CV));
