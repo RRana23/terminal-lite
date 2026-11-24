@@ -16,6 +16,7 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | DES | `NVDA DES` | Company profile, sector, headcount, headline financials |
 | FA | `NVDA FA` | 5 years of income statement, cash flow and balance sheet, copy to Excel |
 | DCF / WACC | `NVDA DCF`, `NVDA WACC` | Five-year DCF seeded from the statements, CAPM cost of equity with adjusted beta, WACC, terminal value, sensitivity grid |
+| EE / ANR | `NVDA EST`, `NVDA ANR` | EPS estimate trend and revisions, consensus EPS and revenue, ratings, price targets, upgrades and downgrades, biggest estimate changes |
 | CF | `NVDA CF` | SEC filings with links |
 | HDS | `NVDA HDS` | Institutional and mutual fund holders |
 | Insider screens | `NVDA INS` | Recent insider trades |
@@ -36,7 +37,7 @@ Also: an About tab explaining how it's built (`ABOUT`), housing and inflation (F
 ```mermaid
 flowchart LR
   A[GitHub Actions<br/>weeknights 6-7 pm ET] --> B[update.py]
-  B -->|prices, fundamentals,<br/>options, news, holders| Y[Yahoo Finance]
+  B -->|prices, fundamentals, estimates,<br/>options, news, holders| Y[Yahoo Finance]
   B -->|statements, filings| S[SEC EDGAR]
   B -->|inflation, housing, yields,<br/>credit spreads, calendar| F[FRED, Zillow]
   B --> C[(cache: last good data)]
@@ -57,7 +58,7 @@ flowchart LR
 |---|---|
 | `template.html` | Core page and app code |
 | `update.py` | Fetches data and builds `public/` |
-| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, DCF, live prices, design, command bar, guide, about, tab order |
+| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, DCF, estimates, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
 

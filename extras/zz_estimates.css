@@ -1,0 +1,23 @@
+/* Estimates view on the Company tab */
+table.et td,table.et th{text-align:right;white-space:nowrap}
+table.et td:first-child,table.et th:first-child{text-align:left;font-family:'IBM Plex Sans',system-ui,sans-serif}
+table.eud td:nth-child(2),table.eud th:nth-child(2),table.eud td:nth-child(3),table.eud th:nth-child(3),table.eud td:nth-child(4),table.eud th:nth-child(4),table.emk td:nth-child(2),table.emk th:nth-child(2){text-align:left;white-space:normal;font-family:'IBM Plex Sans',system-ui,sans-serif}
+.ecap{margin-top:8px;font:12px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+.ebig{display:flex;flex-direction:column;gap:2px;margin:0 0 10px}
+.ebig b{font:600 22px/1.2 'IBM Plex Sans',system-ui,sans-serif;color:var(--tx)}
+.ebig span{font:12px/1.4 'IBM Plex Sans',system-ui,sans-serif}
+.estk{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--p2);flex:1}
+.estk i,.eleg i{display:block}
+.esb{background:var(--up)}.eb{background:var(--up);opacity:.55}.eh{background:var(--mu);opacity:.6}.es{background:var(--dn);opacity:.55}.ess{background:var(--dn)}
+.eleg{display:flex;flex-wrap:wrap;gap:4px 12px;margin:8px 0;font:12px 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu)}
+.eleg span{display:inline-flex;align-items:center;gap:5px}
+.eleg i{width:10px;height:10px;border-radius:2px}
+.erec{display:grid;gap:6px;margin-top:10px}
+.erec>div{display:grid;grid-template-columns:84px 1fr;align-items:center;gap:8px;font:12px 'IBM Plex Sans',system-ui,sans-serif}
+.erec .estk{height:8px}
+.eh4{font:600 12.5px 'IBM Plex Sans',system-ui,sans-serif;color:var(--am);margin:16px 0 8px}
+.ept{position:relative;height:16px;margin:10px 6px 4px;background:var(--p2);border-radius:8px}
+.eptr{position:absolute;top:5px;bottom:5px;background:var(--mu);opacity:.5;border-radius:3px}
+.ept i{position:absolute;top:0;width:3px;height:16px;margin-left:-1.5px;border-radius:2px}
+.ept .epx{background:var(--tx)}.ept .epm{background:var(--am);width:4px}
+.eptl{display:flex;justify-content:space-between;margin:0 0 6px;font:12px 'IBM Plex Mono',ui-monospace,monospace;color:var(--mu)}
