@@ -15,6 +15,7 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | GP | `NVDA` | Candlestick chart up to 10 years, moving averages, indicators |
 | DES | `NVDA DES` | Company profile, sector, headcount, headline financials |
 | FA | `NVDA FA` | 5 years of income statement, cash flow and balance sheet, copy to Excel |
+| DCF / WACC | `NVDA DCF`, `NVDA WACC` | Five-year DCF seeded from the statements, CAPM cost of equity with adjusted beta, WACC, terminal value, sensitivity grid |
 | CF | `NVDA CF` | SEC filings with links |
 | HDS | `NVDA HDS` | Institutional and mutual fund holders |
 | Insider screens | `NVDA INS` | Recent insider trades |
@@ -56,7 +57,7 @@ flowchart LR
 |---|---|
 | `template.html` | Core page and app code |
 | `update.py` | Fetches data and builds `public/` |
-| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, live prices, design, command bar, guide, about, tab order |
+| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, DCF, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
 
