@@ -27,6 +27,8 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | EQS | `EQS` | S&P 500 screener and factor scores |
 | OMON / OSA | `SPY OMON` | Options chains for 71 names, IV smile and term structure, max pain, strategy payoff builder |
 | NFP / ECST | `JOBS` | Payrolls by month and sector, U-3 and U-6 unemployment, participation, wages vs inflation, jobless claims, openings, Sahm rule |
+| GDP / ECST | `GDP` | Real GDP growth every quarter since 1947 with recessions shaded, contributions by component, GDPNow, consumer spending, saving rate, retail sales |
+| CPI | `CPI` | Headline and core CPI and PCE, shelter, food, energy, 3- and 6-month annualized rates, Fed target; every economy chart shows date and value on hover |
 | GC | `GC` | Treasury yield curve vs 1 month, 1 year and 5 years ago; yield, curve and credit spread history; inversion signals |
 | YAS | `YAS` | Bond calculator: price, duration, convexity, DV01, spread to Treasuries, price-yield chart |
 | TOP / CN | `TOP`, `NVDA CN` | Market and company headlines |
@@ -62,7 +64,7 @@ flowchart LR
 |---|---|
 | `template.html` | Core page and app code |
 | `update.py` | Fetches data and builds `public/` |
-| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, jobs, DCF, estimates, credit and dividends, ratings, moving averages, live prices, design, command bar, guide, about, tab order |
+| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, jobs, growth and inflation, DCF, estimates, credit and dividends, ratings, moving averages, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
 
