@@ -4,7 +4,9 @@ import datetime, json, os, time
 import requests
 
 NAME = "sec"
-UA = {"User-Agent": os.environ.get("SEC_USER_AGENT", "TerminalLite personal research RRana23@users.noreply.github.com")}
+UA = {"User-Agent": os.environ.get("SEC_USER_AGENT", "TerminalLite personal research RRana23@users.noreply.github.com"),
+      "Accept-Encoding": "gzip, deflate"}
+ERRS = []
 # label: list of XBRL tags to try, in order
 DUR = {"Revenue": ["Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "SalesRevenueNet",
                    "RevenueFromContractWithCustomerIncludingAssessedTax", "RevenuesNetOfInterestExpense"],
@@ -19,9 +21,15 @@ FORMS = {"10-K", "10-Q", "8-K", "DEF 14A", "4", "S-1", "S-3", "SC 13D", "SC 13G"
 
 def _get(url):
     for attempt in range(3):
-        r = requests.get(url, headers=UA, timeout=60)
-        time.sleep(0.15)
-        if r.status_code == 200: return r.json()
+        try:
+            r = requests.get(url, headers=UA, timeout=60)
+            time.sleep(0.15)
+            if r.status_code == 200: return r.json()
+            if r.status_code == 404: return None
+            err = f"HTTP {r.status_code}"
+        except Exception as e:
+            err = str(e)[:120]
+        if len(ERRS) < 5: ERRS.append(f"{url} -> {err}")
         time.sleep(2 + 3 * attempt)
     return None
 
@@ -71,19 +79,31 @@ def fetch(ctx):
         print("SEC: using this week's copy"); return prev
     m = _get("https://www.sec.gov/files/company_tickers.json") or {}
     ciks = {v["ticker"].replace(".", "-"): str(v["cik_str"]).zfill(10) for v in m.values()}
-    old, out, miss = (prev or {}).get("d", {}), {}, 0
+    if not ciks:  # fallback: the Wikipedia S&P 500 table lists each company's CIK
+        try:
+            import io, pandas as pd
+            html = requests.get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", headers={"User-Agent": "Mozilla/5.0"}, timeout=60).text
+            w = pd.read_html(io.StringIO(html))[0]
+            ciks = {s.replace(".", "-"): str(int(c)).zfill(10) for s, c in zip(w.Symbol, w.CIK)}
+        except Exception as e:
+            print("SEC: CIK lookup failed:", e)
+    print(f"SEC: {len(ciks)} CIKs found")
+    old, out, miss, got = (prev or {}).get("d", {}), {}, 0, 0
     for t in ctx["syms"]:
+        if got == 0 and miss >= 10:
+            print("SEC: first 10 companies all failed, stopping early"); break
         cik = ciks.get(t)
         try:
             facts = _get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json") if cik else None
             sub = _get(f"https://data.sec.gov/submissions/CIK{cik}.json") if cik else None
             rec = {"cik": cik, "fa": statements(facts) if facts else None, "fil": filings(sub, cik) if sub else []}
-            if rec["fa"] or rec["fil"]: out[t] = rec; continue
+            if rec["fa"] or rec["fil"]: out[t] = rec; got += 1; continue
         except Exception as e:
             print("SEC", t, e)
         miss += 1
         if t in old: out[t] = old[t]
     print(f"SEC: {len(out)} companies ({miss} missing; previous copy kept where available)")
+    for e in ERRS: print("SEC error:", e)
     return {"_ts": datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds"), "d": out}
 
 def ok(data):
