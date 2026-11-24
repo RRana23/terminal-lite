@@ -4,12 +4,7 @@ A Bloomberg-style market terminal for the S&P 500, built on free public data and
 
 **Live site: https://rrana23.github.io/terminal-lite/**
 
-![Markets tab](docs/markets.png)
-
-| | |
-|---|---|
-| ![Company financials](docs/company.png) | ![Options chain](docs/options.png) |
-| ![Economic calendar](docs/economy.png) | ![Command guide](docs/guide.png) |
+<!-- Screenshots go here once the design is final: docs/markets.png, company.png, options.png, economy.png, guide.png -->
 
 ## What it does
 
@@ -31,7 +26,7 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | PORT | `PORT` | Portfolio value, P&L, risk (volatility, VaR, drawdown), allocation, stress tests |
 | | `NVDA AMD AVGO` | Grouping: compare up to 10 tickers with the VIX and the scenarios they are most exposed to |
 
-Also: housing and inflation (FRED, Zillow), desks for nine finance roles, optional live prices (Finnhub), dark and light themes, phone layout, and install-as-an-app.
+Also: an About tab explaining how it's built (`ABOUT`), housing and inflation (FRED, Zillow), desks for nine finance roles, optional live prices (Finnhub), dark and light themes, phone layout, and install-as-an-app.
 
 ## How it works
 

@@ -1,0 +1,26 @@
+/* About tab */
+.about .ab h3{font-family:'IBM Plex Sans',system-ui,sans-serif}
+.ab-hero h2{font:600 30px/1.15 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:-.01em;margin:2px 0 10px;color:var(--tx)}
+.ab-hero p{max-width:74ch;line-height:1.6;margin:0 0 8px;font-family:'IBM Plex Sans',system-ui,sans-serif}
+.ab-hero a{color:var(--am);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .15s}
+.ab-hero a:hover{border-bottom-color:var(--am)}
+.ab-try{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px}
+.ab-try .mu{margin-right:4px;font-size:12.5px}
+.ab-try button.in{width:auto;white-space:nowrap;font-family:'IBM Plex Mono',ui-monospace,monospace}
+.ab-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--ln);border:1px solid var(--ln);border-radius:var(--r);overflow:hidden;margin-top:16px}
+.ab-stats div{background:var(--p2);padding:12px 14px}
+.ab-stats b{display:block;font:600 22px/1.2 'IBM Plex Mono',ui-monospace,monospace;color:var(--tx)}
+.ab-stats span{display:block;margin-top:2px;font:12px/1.4 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu)}
+.ab-flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:24px}
+.ab-step{position:relative;background:var(--p2);border:1px solid var(--ln);border-radius:var(--r);padding:12px 14px}
+.ab-step:not(:last-child)::after{content:'\2192';position:absolute;right:-18px;top:50%;transform:translateY(-50%);color:var(--mu);font-size:14px}
+.ab-step .n{font:500 11px 'IBM Plex Mono',ui-monospace,monospace;color:var(--am)}
+.ab-step b{display:block;margin:4px 0 6px;font:600 14px 'IBM Plex Sans',system-ui,sans-serif;color:var(--tx)}
+.ab-step p{margin:0;font:12.5px/1.5 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu)}
+.about td,.about th{text-align:left;font-family:'IBM Plex Sans',system-ui,sans-serif;vertical-align:top;line-height:1.5}
+.about td:first-child{white-space:nowrap;font-weight:600;color:var(--tx)}
+.ab-list{margin:0;padding:0 0 0 18px;font:13px/1.6 'IBM Plex Sans',system-ui,sans-serif}
+.ab-list li{margin-bottom:6px}
+.ab-list .mu{display:block;font-size:12.5px}
+@media(max-width:1100px){.ab-flow{grid-template-columns:repeat(3,1fr)}.ab-step::after{display:none}.ab-stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.ab-flow{grid-template-columns:1fr;gap:8px}.ab-stats{grid-template-columns:repeat(2,1fr)}.ab-hero h2{font-size:24px}.about td:first-child{white-space:normal}}
