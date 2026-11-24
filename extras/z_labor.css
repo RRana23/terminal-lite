@@ -4,8 +4,3 @@ table.lt td,table.lt th{text-align:right;white-space:nowrap}
 table.lt td:first-child,table.lt th:first-child{text-align:left;white-space:normal;font-family:'IBM Plex Sans',system-ui,sans-serif}
 .rsvg{width:100%;overflow:hidden}
 .rsvg svg{display:block;font:11px 'IBM Plex Mono',ui-monospace,monospace}
-.ctt{position:absolute;z-index:5;display:none;pointer-events:none;min-width:120px;padding:7px 9px;background:var(--pn);border:1px solid var(--ln);border-radius:var(--r);box-shadow:0 4px 14px rgba(0,0,0,.18);font:12px/1.5 'IBM Plex Sans',system-ui,sans-serif;color:var(--tx);white-space:nowrap}
-.ctt>b{display:block;margin-bottom:2px;font-weight:600}
-.ctt div{display:flex;align-items:center;gap:6px}
-.ctt div b{margin-left:auto;padding-left:10px;font:500 12px 'IBM Plex Mono',ui-monospace,monospace}
-.ctt i{display:inline-block;width:9px;height:9px;border-radius:2px}
