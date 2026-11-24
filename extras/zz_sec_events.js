@@ -41,12 +41,12 @@ return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(s)}
 function sxNeed(){const n=[];if(!SXC[cur])n.push(sxLoad(cur));if(typeof coLoad=='function'&&!(CD[cur]&&CD[cur].ok))n.push(coLoad(cur));if(typeof ESTS!='undefined'&&ESTS.has(cur)&&!ESTC[cur])n.push(estLoad(cur));return n}
 // ---------- Company tab: Events view with earnings calls ----------
 function sxEvents(bar){const c=EV.cal[cur]||{},sx=SXC[cur]||{},er=sx.er||[],own=(CD[cur]&&CD[cur].own)||{},eh=((ESTC[cur]||{}).eh)||[],nm=sxCo(),yh=sx.src=='yahoo';
-const fil=((CD[cur]&&CD[cur].sec&&CD[cur].sec.fil)||[]).filter(x=>/^8-K/.test(x.f)).slice(0,8);
+const fil=sxFil(cur).filter(x=>/^8-K/.test(x.f)).slice(0,8);
 const ir=own.ir?sxA(own.ir,'Investor relations site'):own.web?sxA(own.web,'Company website')+' <span class="mu">·</span> '+sxA('https://www.google.com/search?q='+sxQ(nm+' investor relations'),'Find investor relations'):sxA('https://www.google.com/search?q='+sxQ(nm+' investor relations'),'Find investor relations');
 const nextE=c.e&&c.e>=today?c.e:null;
 const up=P('Upcoming events, '+cur,KV('Next earnings',c.e?dayName(c.e)+(c.e<today?' <span class="mu">(reported)</span>':''):'–')+KV('EPS estimate (low to high)',c.eA!=null?'$'+f(c.eA)+' ($'+f(c.eL)+' to $'+f(c.eH)+')':'–')+KV('Revenue estimate',c.rA?fbig(c.rA):'–')+KV('Ex-dividend date',c.x?dayName(c.x):'–')+KV('Dividend pay date',c.p?dayName(c.p):'–')
 +KV('Webcasts and slides',ir)+(nextE?'<p style="margin:10px 0 0"><a class="sxbtn" download="'+cur+'-earnings.ics" href="'+sxICS(cur,nextE)+'">Add next earnings to calendar</a></p>':''),'c6');
-const k8=P('Recent 8-K filings (material events)',fil.length?T(['Date','Form',''],fil.map(x=>[x.d,x.f,'<a target="_blank" rel="noopener" href="'+x.u+'">Open</a>'])):'<p class="mu">None loaded.</p>','c6');
+const k8=P('Recent 8-K filings (material events)',fil.length?T(['Date','Form','What happened',''],fil.map(x=>[sxDay(x.d),x.f,esc(sxDesc(x)),sxA(x.u,'Open')])).replace('<table','<table class="sxt sx8"'):'<p class="mu">None loaded.</p>','c6');
 const match=d=>{const t=Date.parse(d);return eh.find(x=>x[2]!=null&&Math.abs(Date.parse(x[0])-t)<=4*864e5)};
 const rows=er.map(x=>{const m=match(x.d),sp=m&&m[1]?(m[2]-m[1])/Math.abs(m[1])*100:null,mo=sxMon(x.d);
 return[sxDay(x.d),m&&m[1]!=null?'$'+f(m[1]):'–',m?'$'+f(m[2]):'–',sp==null?'–':'<span class="'+(sp>=0?'up':'dn')+'">'+(sp>=0?'Beat ':'Miss ')+(sp>=0?'+':'')+f(sp,1)+'%</span>',
@@ -79,10 +79,19 @@ return P('M&A filings on EDGAR, last 45 days',SG('dlu',['S&P 500','All companies
 +sxGloss()}
 const _evS=events;events=function(){const L4=['Top news','Earnings','Economy','Dividends'],bar='<section class="p c12" style="padding:6px 12px">'+SG('nv',[...L4,'M&A'],NV)+'</section>';
 if(NV!='M&A')return _evS().replace(SG('nv',L4,NV),SG('nv',[...L4,'M&A'],NV));return bar+sxFeed()};
+// ---------- Filings view: the nightly list from this module (the statements job that fed it runs weekly) ----------
+const SXDS={'10-K':'Annual report','10-Q':'Quarterly report','8-K':'Current report','4':'Insider trade','DEF 14A':'Annual meeting proxy','DEFA14A':'Additional proxy material','S-1':'Registration of new shares','S-3':'Shelf registration','S-8':'Shares for employee plans','11-K':'Employee savings plan report','20-F':'Annual report (foreign issuer)','6-K':'Current report (foreign issuer)','SC 13G':'Passive stake over 5% (13G)','SCHEDULE 13G':'Passive stake over 5% (13G)','ARS':'Annual report to shareholders','8-A12B':'Securities registration','424B2':'Prospectus (notes)','FWP':'Free writing prospectus'};
+const sxDesc=x=>{const b=x.f.replace(/\/A$/,''),a=/\/A$/.test(x.f)?' (amended)':'',d=(x.x||'').trim();return d&&d.toUpperCase()!=b&&!/^(FORM )?[0-9A-Z -]{1,9}$/.test(d)?(d==d.toUpperCase()?d.charAt(0)+d.slice(1).toLowerCase():d):SXDS[b]?SXDS[b]+a:SXF[b]?sxInfo(x.f)[0]:d||'–'};
+const sxFil=t=>{const x=SXC[t];return x&&x.fil&&x.fil.length?x.fil:((CD[t]&&CD[t].sec&&CD[t].sec.fil)||[])};
+const SXFG={All:()=>1,'10-K / 10-Q':f=>/^10-[KQ]/.test(f),'8-K':f=>/^8-K/.test(f),'Insider (Form 4)':f=>/^4(\/A)?$/.test(f),Proxy:f=>/^DEFA?14A/.test(f),'M&A':f=>!!SXF[f.replace(/\/A$/,'')],'13D / 13G':f=>/^(SC |SCHEDULE )13[DG]/.test(f)};
+coFil=function(c){if(!SXFG[FF])FF='All';const L=sxFil(cur),M=L.filter(x=>SXFG[FF](x.f)),cik=(SXC[cur]&&SXC[cur].cik)||(c.sec&&c.sec.cik);
+return P('SEC filings, '+cur,SG('ff',Object.keys(SXFG),FF)+(M.length?T(['Date','Form','Description',''],M.slice(0,40).map(x=>[sxDay(x.d),x.f,esc(sxDesc(x)),sxA(x.u,'Open')])).replace('<table','<table class="sxt sx8"'):'<p class="mu">No filings of this type in the recent list.</p>')
++'<div class="mu lcap">'+(SXC[cur]&&SXC[cur].fil?'Checked against SEC EDGAR each weeknight, so a new filing appears the evening it is filed (or the next weeknight). ':'')+'8-K descriptions list the items the company reported.'+(cik?' '+sxA('https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK='+cik,'All '+cur+' filings on EDGAR'):'')+'</div>','c12')};
 // ---------- Company tab bar: M&A after Filings ----------
 const _coS=company,SVL0=RVL1,SVL1=[...RVL1.slice(0,RVL1.indexOf('Filings')+1),'M&A',...RVL1.slice(RVL1.indexOf('Filings')+1)];
-company=function(){if(!CO[cur])return _coS();if(CV!='M&A'&&CV!='Events')return _coS().replace(SG('cv',SVL0,CV),SG('cv',SVL1,CV));
+company=function(){if(!CO[cur])return _coS();if(CV=='Filings'&&!SXC[cur])sxLoad(cur).then(()=>{if(tab==CT&&CV=='Filings')render0()});if(CV!='M&A'&&CV!='Events')return _coS().replace(SG('cv',SVL0,CV),SG('cv',SVL1,CV));
 const bar='<section class="p c12" style="padding:6px 12px">'+SG('cv',SVL1,CV)+'</section>',need=sxNeed();
 if(need.length){Promise.all(need).then(()=>{if(tab==CT)render0()});return bar+P(CV,'<p class="mu m">Loading '+cur+'…</p>','c12')}
 return CV=='M&A'?sxMA(bar):sxEvents(bar)};
+const _r0S=render0;render0=function(){_r0S();if(tab==CT&&CO[ac]){const d=$('#v').firstElementChild;if(d&&/Updated weekly/.test(d.textContent))d.textContent='Filings, earnings releases and M&A from SEC EDGAR, checked each weeknight. Statements, profile, ownership and insider trades from SEC EDGAR and Yahoo Finance, refreshed weekly.'}};
 render();

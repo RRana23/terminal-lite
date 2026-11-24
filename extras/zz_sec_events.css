@@ -22,3 +22,4 @@ table.sxf td:nth-child(3){line-height:1.5}
 .sxs b{font:600 18px 'IBM Plex Mono',ui-monospace,monospace;color:var(--tx)}
 .sxs span{font:12px 'IBM Plex Sans',system-ui,sans-serif}
 @media(max-width:760px){.p:has(table.sxt){overflow-x:auto}}
+table.sx8 td:nth-child(3),table.sx8 th:nth-child(3){text-align:left;white-space:normal;font-family:'IBM Plex Sans',system-ui,sans-serif}

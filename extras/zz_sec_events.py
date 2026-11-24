@@ -2,6 +2,8 @@
 - Per company: every earnings release (8-K Item 2.02) with a direct link to the press release exhibit, and every
   merger and acquisition filing (merger proxies, S-4/F-4 stock deals, tender offers, going-private, 425 deal
   communications, activist 13D stakes, completed deals under 8-K Item 2.01).
+- Per company: the full recent filing list (10-K, 10-Q, 8-K with its items in plain English, proxies, Form 4,
+  13D/13G and more), so new filings show up the next weeknight instead of waiting for the weekly statements job.
 - Market-wide: every M&A filing on EDGAR over the last 45 days, from the SEC's daily form index.
 Refreshed each weeknight. If SEC blocks the build server, the per-company part falls back to Yahoo Finance's
 copy of the SEC filing list. SEC asks for at most 10 requests per second and a User-Agent that names you."""
@@ -16,6 +18,15 @@ UA = {"User-Agent": os.environ.get("SEC_USER_AGENT", "TerminalLite personal rese
 MA = ["DEFM14A", "PREM14A", "DEFM14C", "PREM14C", "S-4", "F-4", "SC TO-T", "SC 14D9", "SC 13E3", "425",
       "SC 13D", "SCHEDULE 13D"]
 MA_SET = set(MA)
+# the full filing list for the Filings view, refreshed nightly (amendments included)
+FIL = {"10-K", "10-Q", "8-K", "DEF 14A", "DEFA14A", "4", "S-1", "S-3", "S-8", "11-K", "20-F", "6-K", "SC 13G", "SCHEDULE 13G",
+       "ARS", "8-A12B", "424B2", "FWP"} | MA_SET
+FILO = {"424B2", "FWP"}  # frequent bank note filings: kept out unless little else exists
+ITEMS = {"1.01": "Material agreement", "1.02": "Agreement terminated", "1.03": "Bankruptcy", "2.01": "Acquisition or sale completed",
+         "2.02": "Earnings results", "2.03": "New debt or obligation", "2.05": "Restructuring costs", "2.06": "Impairment",
+         "3.01": "Listing notice", "3.02": "Unregistered share sale", "3.03": "Shareholder rights change", "4.01": "Auditor change",
+         "4.02": "Restatement", "5.01": "Change in control", "5.02": "Executive or director change", "5.03": "Bylaws or fiscal year change",
+         "5.07": "Shareholder vote results", "5.08": "Shareholder nominations", "7.01": "Regulation FD disclosure", "8.01": "Other events"}
 _lock, _last = threading.Lock(), [0.0]
 ERRS = []
 
@@ -66,13 +77,18 @@ def _company(t, cik, old):
     if not sub: return t, None
     r = sub.get("filings", {}).get("recent", {})
     cut = (datetime.date.today() - datetime.timedelta(days=3 * 365)).isoformat()
-    er, ma = [], []
+    er, ma, fil, f4, fo = [], [], [], [], []
+    desc = r.get("primaryDocDescription") or []
     for i, form in enumerate(r.get("form", [])):
         d = r["filingDate"][i]
         if d < cut: break
         acc, items = r["accessionNumber"][i], (r.get("items") or [""] * (i + 1))[i] or ""
         u = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{acc.replace('-', '')}/{r['primaryDocument'][i]}"
         base = form.replace("/A", "")
+        if base in FIL:
+            x = "; ".join(ITEMS[k] for k in items.split(",") if k in ITEMS) if form.startswith("8-K") else ""
+            row = {"f": form, "d": d, "x": x or (desc[i] if i < len(desc) else "") or "", "u": u}
+            (f4 if base == "4" else fo if base in FILO else fil).append(row)
         if form == "8-K" and "2.02" in items and len(er) < 12:
             er.append({"d": d, "a": acc, "u": u, "i": _idx_url(cik, acc)})
         if base in MA_SET or (form == "8-K" and "2.01" in items):
@@ -84,7 +100,8 @@ def _company(t, cik, old):
         x["pr"] = known[x["a"]] if known.get(x["a"]) else _press_release(cik, x["a"])
     for x in er[2:]:
         if known.get(x["a"]): x["pr"] = known[x["a"]]
-    return t, {"cik": cik, "er": er, "ma": ma, "src": "sec"}
+    fil = sorted(fil[:70] + f4[:30] + (fo[:10] if len(fil) < 20 else []), key=lambda x: x["d"], reverse=True)
+    return t, {"cik": cik, "er": er, "ma": ma, "fil": fil, "src": "sec"}
 
 
 def _feed(prev_days):
@@ -134,16 +151,17 @@ def _yahoo(syms, old):
     def one(t):
         for attempt in range(2):
             try:
-                er, ma = [], []
+                er, ma, fil = [], [], []
                 for x in (yf.Ticker(t).sec_filings or [])[:120]:
                     d = x.get("date"); d = d.isoformat()[:10] if hasattr(d, "isoformat") else str(d)[:10]
                     typ, title, ex = x.get("type", ""), x.get("title", "") or "", x.get("exhibits") or {}
+                    if len(fil) < 80: fil.append({"f": typ, "d": d, "x": title, "u": x.get("edgarUrl", "")})
                     if typ == "8-K" and re.search(r"results of operations", title, re.I):
                         pr = ex.get("EX-99.1") or next((v for k, v in ex.items() if k.startswith("EX-99")), None)
                         er.append({"d": d, "u": x.get("edgarUrl", ""), "pr": pr})
                     if typ.replace("/A", "") in MA_SET or (typ == "8-K" and re.search(r"completion of acquisition", title, re.I)):
                         ma.append({"d": d, "f": typ if typ.replace("/A", "") in MA_SET else "8-K 2.01", "u": x.get("edgarUrl", "")})
-                return t, {"er": er[:12], "ma": ma, "src": "yahoo"}
+                return t, {"er": er[:12], "ma": ma, "fil": fil, "src": "yahoo"}
             except Exception:
                 time.sleep(2 + 2 * attempt)
         return t, None
