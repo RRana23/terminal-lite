@@ -21,6 +21,8 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | RV | `NVDA RV` | Industry comps, implied value at peer median, possible acquirers |
 | EQS | `EQS` | S&P 500 screener and factor scores |
 | OMON / OSA | `SPY OMON` | Options chains for 71 names, IV smile and term structure, max pain, strategy payoff builder |
+| GC | `GC` | Treasury yield curve vs 1 month, 1 year and 5 years ago; yield, curve and credit spread history; inversion signals |
+| YAS | `YAS` | Bond calculator: price, duration, convexity, DV01, spread to Treasuries, price-yield chart |
 | TOP / CN | `TOP`, `NVDA CN` | Market and company headlines |
 | EVTS / ECO / DVD | `EVTS`, `ECO`, `DVD` | Earnings, economic and ex-dividend calendars, Fed meetings, key indicators |
 | PORT | `PORT` | Portfolio value, P&L, risk (volatility, VaR, drawdown), allocation, stress tests |
@@ -35,7 +37,7 @@ flowchart LR
   A[GitHub Actions<br/>weeknights 6-7 pm ET] --> B[update.py]
   B -->|prices, fundamentals,<br/>options, news, holders| Y[Yahoo Finance]
   B -->|statements, filings| S[SEC EDGAR]
-  B -->|inflation, housing,<br/>economic calendar| F[FRED, Zillow]
+  B -->|inflation, housing, yields,<br/>credit spreads, calendar| F[FRED, Zillow]
   B --> C[(cache: last good data)]
   B --> P[public/: page shell, app.js,<br/>meta.json, one file per ticker]
   P --> G[GitHub Pages]
@@ -54,7 +56,7 @@ flowchart LR
 |---|---|
 | `template.html` | Core page and app code |
 | `update.py` | Fetches data and builds `public/` |
-| `extras/` | Add-ons: fundamentals, company pages, news and events, options, live prices, design, command bar, guide |
+| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
 

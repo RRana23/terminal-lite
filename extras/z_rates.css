@@ -1,0 +1,25 @@
+/* Rates tab */
+.rsvg{width:100%;overflow:hidden}
+.rsvg svg{display:block;font:11px 'IBM Plex Mono',ui-monospace,monospace}
+.rleg{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0 0 8px;font:500 12px 'IBM Plex Mono',ui-monospace,monospace;color:var(--mu)}
+.rleg span{display:inline-flex;align-items:center;gap:6px;margin-right:6px;color:var(--tx)}
+.rleg i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.rleg button{display:inline-flex;align-items:center;gap:6px;font:500 12px 'IBM Plex Mono',ui-monospace,monospace;padding:4px 9px;border:1px solid var(--ln);border-radius:var(--r);background:transparent;color:var(--mu);cursor:pointer;opacity:.55;transition:opacity .15s,border-color .15s,color .15s}
+.rleg button:hover{opacity:.85;border-color:var(--mu)}
+.rleg button.on{opacity:1;color:var(--tx);border-color:var(--mu)}
+.rleg button:active{transform:translateY(1px)}
+.rates table.rc{margin-top:10px;font:12px 'IBM Plex Mono',ui-monospace,monospace}
+.rates table.rc td,.rates table.rc th{text-align:right;padding:4px 6px;white-space:nowrap}
+.rates table.rc td:first-child,.rates table.rc th:first-child{text-align:left;color:var(--mu)}
+.rates table.rk td,.rates table.rk th{text-align:right;white-space:nowrap}
+.rates table.rk td:first-child,.rates table.rk th:first-child{text-align:left;white-space:normal;font-family:'IBM Plex Sans',system-ui,sans-serif}
+.rread{min-height:18px;margin:0 0 4px;font-size:12.5px}
+.rnote{margin:-2px 0 8px;font:12px/1.45 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu)}
+.rcap{margin-top:8px;font:12px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+.yas{display:grid;grid-template-columns:minmax(200px,240px) minmax(240px,1fr) minmax(280px,1.4fr);gap:20px;align-items:start}
+.yin{display:grid;gap:10px}
+.yin label{display:grid;gap:4px;font:12px 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu)}
+.yin input,.yin select{width:100%;box-sizing:border-box}
+#yout table{margin-top:10px}
+@media(max-width:1100px){.yas{grid-template-columns:minmax(200px,240px) 1fr}.yas>div:last-child{grid-column:1/-1}}
+@media(max-width:640px){.yas{grid-template-columns:1fr}}
