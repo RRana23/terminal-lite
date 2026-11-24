@@ -1,0 +1,12 @@
+/* Growth view and inflation panel on the Economy tab */
+.mseg{margin:0 0 8px}
+.mbig{display:flex;flex-wrap:wrap;gap:10px 32px;margin:0 0 12px}
+.mchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.mchips button{display:inline-flex;align-items:center;gap:6px;font:500 12px 'IBM Plex Sans',system-ui,sans-serif;padding:4px 10px;border:1px solid var(--ln);border-radius:var(--r);background:transparent;color:var(--mu);cursor:pointer;opacity:.6;transition:opacity .15s,border-color .15s,color .15s}
+.mchips button:hover{opacity:.9;border-color:var(--mu)}
+.mchips button.on{opacity:1;color:var(--tx);border-color:var(--mu)}
+.mchips button:active{transform:translateY(1px)}
+.mchips i{display:inline-block;width:10px;height:10px;border-radius:2px}
+table.mit{margin-top:12px}
+table.mit td:first-child{white-space:nowrap}
+.rsd{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
