@@ -3,6 +3,7 @@ price targets and recent upgrades and downgrades, from Yahoo Finance. Refreshed 
 consensus is saved so the site builds its own estimate history over time. (Named zz_estimates so its page code
 loads after the DCF view.)"""
 import datetime, json, math, os, time
+import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 
 NAME = "zz_estimates"
@@ -56,9 +57,27 @@ def _one(t):
             try:
                 ud = tk.upgrades_downgrades
                 if ud is not None and not ud.empty:
-                    ud = ud.sort_index(ascending=False).head(15)
+                    ud = ud.sort_index(ascending=False)
+                    yr = ud.index.max() - pd.Timedelta(days=372)
+                    ud = ud[ud.index >= yr].head(120)  # a year of rating changes, for the ratings history
                     d["ud"] = [[i.strftime("%Y-%m-%d"), str(r.get("Firm", "")), str(r.get("ToGrade", "")), str(r.get("FromGrade", "")),
                                 str(r.get("Action", "")), _n(r.get("currentPriceTarget"), 2), _n(r.get("priorPriceTarget"), 2)] for i, r in ud.iterrows()]
+            except Exception:
+                pass
+            try:  # reported vs expected EPS by quarter
+                eh = []
+                ed = tk.get_earnings_dates(limit=12)
+                if ed is not None and not ed.empty:
+                    for i, r in ed.iterrows():
+                        if str(r.get("Event Type", "Earnings")) not in ("Earnings", "2", "nan"): continue
+                        eh.append([i.strftime("%Y-%m-%d"), _n(r.get("EPS Estimate")), _n(r.get("Reported EPS"))])
+                if not any(x[2] is not None for x in eh):
+                    hi = tk.earnings_history
+                    if hi is not None and not hi.empty:
+                        eh = [[i.strftime("%Y-%m-%d"), _n(r.get("epsEstimate")), _n(r.get("epsActual"))] for i, r in hi.iterrows()]
+                past = [x for x in sorted(eh) if x[2] is not None][-8:]
+                nxt = [x for x in sorted(eh) if x[2] is None and x[0] >= datetime.date.today().isoformat()][:1]
+                if past or nxt: d["eh"] = past + nxt
             except Exception:
                 pass
             try:

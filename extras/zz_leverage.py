@@ -157,4 +157,13 @@ def build(data, meta, out):
     for t, rec in d.items():
         json.dump(rec, open(f"{out}/data/cr/{t}.json", "w"), separators=(",", ":"))
         sm[t] = summary(rec, (S.get(t) or {}).get("p"), (F.get(t) or {}).get("cap"))
-    meta["CR"] = {"t": sorted(d), "asof": (data or {}).get("_ts", "")[:10], "s": sm}
+    # S&P 500 medians among dividend payers: yield, and year-over-year growth of the annual dividend
+    med = lambda a: sorted(a)[len(a) // 2] if a else None
+    gy = {}
+    for rec in d.values():
+        dv = dict((y, v) for y, v in rec.get("dv") or [])
+        for y, v in dv.items():
+            if dv.get(y - 1): gy.setdefault(y, []).append((v / dv[y - 1] - 1) * 100)
+    mg = {y: round(med(a), 1) for y, a in sorted(gy.items())[-6:] if len(a) >= 30}
+    meta["CR"] = {"t": sorted(d), "asof": (data or {}).get("_ts", "")[:10], "s": sm,
+                  "my": med([x["y"] for x in sm.values() if x.get("y")]), "mg": mg}

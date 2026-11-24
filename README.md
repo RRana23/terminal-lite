@@ -12,13 +12,14 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 
 | Bloomberg function | Terminal Lite | What you get |
 |---|---|---|
-| GP | `NVDA` | Candlestick chart up to 10 years, moving averages, indicators |
+| GP | `NVDA` | Candlestick chart up to 10 years, indicators, and 1, 5, 10, 20, 50, 100 and 200-day moving averages plus any custom period (`NVDA MA`) |
 | DES | `NVDA DES` | Company profile, sector, headcount, headline financials |
 | FA | `NVDA FA` | 5 years of income statement, cash flow and balance sheet, copy to Excel |
 | DCF / WACC | `NVDA DCF`, `NVDA WACC` | Five-year DCF seeded from the statements, CAPM cost of equity with adjusted beta, WACC, terminal value, sensitivity grid |
-| EE / ANR | `NVDA EST`, `NVDA ANR` | EPS estimate trend and revisions, consensus EPS and revenue, ratings, price targets, upgrades and downgrades, biggest estimate changes |
+| EE | `NVDA EST` | EPS estimate trend and revisions, consensus EPS and revenue, price targets, biggest estimate changes |
+| ANR | `NVDA ANR` | Analyst rating score out of 10, one-year history of every upgrade and downgrade, each firm's latest opinion and target |
 | Leverage / CRPR | `NVDA LEV` | Net debt/EBITDA, interest coverage, synthetic rating, Altman Z, liquidity, five years of debt and cash, peers |
-| DVD (single stock) | `NVDA DVD` | Dividend yield, payout ratios, 5-year growth, consecutive increases, payment history, cash returned, S&P 500 dividend leaders |
+| DVD / ERN | `NVDA DVD` | Dividends & Earnings: yield and payout vs the market, dividend growth, payment dates, EPS estimate vs actual with beats and misses, earnings metrics vs industry, dividend history and leaders |
 | CF | `NVDA CF` | SEC filings with links |
 | HDS | `NVDA HDS` | Institutional and mutual fund holders |
 | Insider screens | `NVDA INS` | Recent insider trades |
@@ -61,7 +62,7 @@ flowchart LR
 |---|---|
 | `template.html` | Core page and app code |
 | `update.py` | Fetches data and builds `public/` |
-| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, jobs, DCF, estimates, credit and dividends, live prices, design, command bar, guide, about, tab order |
+| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, jobs, DCF, estimates, credit and dividends, ratings, moving averages, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
 
