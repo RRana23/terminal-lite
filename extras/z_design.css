@@ -1,0 +1,60 @@
+/* Design pass: one system for the whole terminal. Loaded after the base styles in template.html. */
+:root{--bg:#0b0f14;--pn:#11171f;--p2:#161e28;--ln:#202a36;--tx:#e6eaf0;--mu:#8792a4;--am:#f0a83a;--up:#22b07d;--dn:#ee5260;--r:4px;color-scheme:dark}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f3f2ee;--pn:#ffffff;--p2:#f7f6f2;--ln:#e1ded6;--tx:#15181d;--mu:#5f6673;--am:#a35f08;--up:#0d8659;--dn:#c62f3c;color-scheme:light}}
+html{-webkit-text-size-adjust:100%}
+body{font:13px/1.5 'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg)}
+td,.m,.big,.kv span:last-child,#tape{font-variant-numeric:tabular-nums}
+/* header and brand */
+header{position:sticky;top:0;z-index:20;gap:16px;padding:10px 20px;background:var(--pn);border-bottom:1px solid var(--ln)}
+header b{display:inline-flex;align-items:center;gap:8px;color:var(--tx);font-size:13px;letter-spacing:.08em}
+header b::before{content:"";width:10px;height:10px;background:var(--am);border-radius:2px}
+#q{width:240px;padding:7px 10px;border:1px solid var(--ln);border-radius:var(--r);background:var(--bg);color:var(--tx);font-size:13px}
+#q::placeholder{color:var(--mu)}
+#q:focus{outline:none;border-color:var(--am);box-shadow:0 0 0 3px color-mix(in srgb,var(--am) 22%,transparent)}
+#hd{color:var(--mu);font-size:12px}
+#tape{background:var(--bg);color:var(--tx);padding:7px 20px!important}
+#tape button{transition:color .15s}#tape button:hover{color:var(--am)!important}
+/* tabs */
+#nav{gap:2px;padding:0 20px;background:var(--pn);border-bottom:1px solid var(--ln);scrollbar-width:none}
+#nav::-webkit-scrollbar{display:none}
+#nav button{font:500 12.5px 'IBM Plex Sans',system-ui,sans-serif;padding:11px 14px;color:var(--mu);border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+#nav button:hover{color:var(--tx)}
+#nav .on{color:var(--tx);border-bottom-color:var(--am)}
+/* layout and panels */
+main{max-width:1600px;padding:16px 20px 32px}
+main>.mu.m:first-child{font:12px/1.5 'IBM Plex Sans',system-ui,sans-serif;margin-bottom:12px!important}
+.grid{gap:12px}
+.p{background:var(--pn);border:1px solid var(--ln);border-radius:var(--r);padding:14px 16px}
+h3{font:600 12.5px/1.4 'IBM Plex Sans',system-ui,sans-serif;color:var(--tx);letter-spacing:.01em;margin:0 0 10px;padding-bottom:9px;border-bottom:1px solid var(--ln)}
+.big{font-size:26px;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.mu{color:var(--mu)}
+/* segmented controls */
+.seg{gap:4px;margin:2px 0 10px}
+.seg button{font:500 12px 'IBM Plex Mono',ui-monospace,monospace;padding:5px 10px;border:1px solid var(--ln)!important;border-radius:var(--r);color:var(--mu);background:transparent;transition:color .15s,border-color .15s,background .15s}
+.seg button:hover{color:var(--tx);border-color:var(--mu)!important}
+.seg button:active{transform:translateY(1px)}
+.seg .on{color:var(--am);border-color:var(--am)!important;background:color-mix(in srgb,var(--am) 12%,transparent)}
+/* tables */
+table{font-size:12.5px}
+th{font:500 11.5px 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu);padding:6px 8px;border-bottom:1px solid var(--ln);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--ln)}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td,table tr:hover td{background:var(--p2)}
+.kv{padding:6px 0;gap:12px}
+.kv:last-of-type{border-bottom:0}
+.bar{height:6px;border-radius:2px;vertical-align:middle}
+/* inputs and buttons */
+.in,input[type=number],select,textarea{background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:var(--r);padding:5px 8px;font:12.5px 'IBM Plex Mono',ui-monospace,monospace;transition:border-color .15s}
+.in:hover,input[type=number]:hover,select:hover{border-color:var(--mu)}
+button.in{cursor:pointer;font-family:'IBM Plex Sans',system-ui,sans-serif;font-weight:500}
+button.in:hover{border-color:var(--am);color:var(--am)}
+button.in:active{transform:translateY(1px)}
+a{color:var(--am);text-underline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+footer{max-width:1600px;margin:0 auto;padding:16px 20px 24px;border-top:1px solid var(--ln);font-size:11.5px}
+/* scrollbars inside panels */
+.p{scrollbar-width:thin;scrollbar-color:var(--ln) transparent}
+/* small screens */
+@media(max-width:900px){.p{grid-column:span 12!important}}
+@media(max-width:640px){header{position:static;padding:10px 14px;gap:10px}#q{width:100%;order:3}#hd{order:2}main{padding:12px 12px 24px}#nav,#tape{padding-left:12px!important;padding-right:12px!important}.p{padding:12px}.big{font-size:22px}footer{padding:14px 12px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

@@ -182,6 +182,12 @@ def build():
             os.makedirs(f"{out}/extras", exist_ok=True); shutil.copy(js_file, f"{out}/{js_file}"); scripts.append(js_file)
     json.dump(meta, open(f"{out}/data/meta.json", "w"), separators=(",", ":"))
     html, js = split_template()
+    head = ""
+    for c in sorted(glob.glob("extras/*.css")):  # add-on stylesheets load after the base styles
+        os.makedirs(f"{out}/extras", exist_ok=True); shutil.copy(c, f"{out}/{c}")
+        head += f'<link rel="stylesheet" href="{c}?v={v}">'
+    if os.path.exists("extras/head.html"): head = open("extras/head.html").read() + head
+    html = html.replace("</head>", head + "</head>", 1)
     html = html.replace("/*STAMP*/", now.strftime("%Y-%m-%d %H:%M UTC")).replace("/*STAMPV*/", v).replace("/*SCRIPTS*/", J(scripts))
     open(f"{out}/index.html", "w").write(html)
     open(f"{out}/app.js", "w").write(js)
