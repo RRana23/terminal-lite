@@ -1,0 +1,24 @@
+/* Earnings calls (Company > Events), M&A (Company > M&A, News & Events > M&A) */
+.sxbtn{display:inline-block;font:500 12.5px 'IBM Plex Sans',system-ui,sans-serif;padding:6px 12px;border:1px solid var(--am);border-radius:var(--r);color:var(--am);text-decoration:none;transition:background .15s,color .15s}
+.sxbtn:hover{background:var(--am);color:var(--bg)}
+.sxbtn:active{transform:translateY(1px)}
+.sxh{margin:12px 0 4px;font:600 12px 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+.sxl{margin:0;padding-left:18px;font:13px/1.5 'IBM Plex Sans',system-ui,sans-serif}
+.sxl li{margin:4px 0}
+.sxl b{font-weight:500;color:var(--tx)}
+table.sxt td,table.sxt th{white-space:nowrap}
+table.sxt a{color:var(--am);text-decoration:none}
+table.sxt a:hover{text-decoration:underline}
+table.sxm td:nth-child(3),table.sxm th:nth-child(3),table.sxf td:nth-child(3),table.sxf th:nth-child(3),table.sxf td:nth-child(4),table.sxf th:nth-child(4),table.sxg td,table.sxg th{text-align:left;white-space:normal;font-family:'IBM Plex Sans',system-ui,sans-serif}
+table.sxm td:nth-child(3) b{font-weight:500;color:var(--tx)}
+table.sxg td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;white-space:nowrap;color:var(--am)}
+.sxw{font-size:12px;line-height:1.4;margin-top:2px;max-width:60ch}
+table.sxf td:nth-child(3){line-height:1.5}
+.sxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:8px 0 10px}
+.sxs button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;border:1px solid var(--ln);border-radius:var(--r);background:transparent;color:var(--mu);cursor:pointer;text-align:left;transition:border-color .15s,color .15s}
+.sxs button:hover{border-color:var(--mu)}
+.sxs button.on{border-color:var(--am);color:var(--tx)}
+.sxs button:active{transform:translateY(1px)}
+.sxs b{font:600 18px 'IBM Plex Mono',ui-monospace,monospace;color:var(--tx)}
+.sxs span{font:12px 'IBM Plex Sans',system-ui,sans-serif}
+@media(max-width:760px){.p:has(table.sxt){overflow-x:auto}}

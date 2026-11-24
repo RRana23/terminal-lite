@@ -20,6 +20,8 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | ANR | `NVDA ANR` | Analyst rating score out of 10, one-year history of every upgrade and downgrade, each firm's latest opinion and target |
 | Leverage / CRPR | `NVDA LEV` | Net debt/EBITDA, interest coverage, synthetic rating, Altman Z, liquidity, five years of debt and cash, peers |
 | DVD / ERN | `NVDA DVD` | Dividends & Earnings: yield and payout vs the market, dividend growth, payment dates, EPS estimate vs actual with beats and misses, earnings metrics vs industry, dividend history and leaders |
+| EVTS / earnings calls | `NVDA CALLS` | Every earnings release since 2023 with the press release, the 8-K and the EPS beat or miss; links to the call transcript, replay and investor relations site; add the next call to your calendar |
+| MA | `NVDA MNA`, `MNA` | M&A from SEC EDGAR: merger proxies, S-4 stock deals, tender offers, going-private deals, activist 13D stakes and completed deals for each company, plus a 45-day feed of every M&A filing on EDGAR |
 | CF | `NVDA CF` | SEC filings with links |
 | HDS | `NVDA HDS` | Institutional and mutual fund holders |
 | Insider screens | `NVDA INS` | Recent insider trades |
@@ -44,7 +46,7 @@ Also: an About tab explaining how it's built (`ABOUT`), housing and inflation (F
 flowchart LR
   A[GitHub Actions<br/>weeknights 6-7 pm ET] --> B[update.py]
   B -->|prices, fundamentals, estimates,<br/>options, news, holders| Y[Yahoo Finance]
-  B -->|statements, filings| S[SEC EDGAR]
+  B -->|statements, filings, earnings<br/>releases, merger filings| S[SEC EDGAR]
   B -->|inflation, housing, jobs, yields,<br/>credit spreads, calendar| F[FRED, Zillow]
   B --> C[(cache: last good data)]
   B --> P[public/: page shell, app.js,<br/>meta.json, one file per ticker]
@@ -64,7 +66,7 @@ flowchart LR
 |---|---|
 | `template.html` | Core page and app code |
 | `update.py` | Fetches data and builds `public/` |
-| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, jobs, growth and inflation, DCF, estimates, credit and dividends, ratings, moving averages, live prices, design, command bar, guide, about, tab order |
+| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, jobs, growth and inflation, earnings calls and M&A, DCF, estimates, credit and dividends, ratings, moving averages, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
 

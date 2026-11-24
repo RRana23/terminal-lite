@@ -30,7 +30,7 @@ def _one(t):
             if mh is not None and not mh.empty and "Value" in mh.columns:
                 major = {k: float(v) for k, v in mh["Value"].items() if isinstance(v, (int, float))}
             return t, {"about": (info.get("longBusinessSummary") or "")[:900], "emp": info.get("fullTimeEmployees"),
-                       "web": info.get("website"), "hq": ", ".join(x for x in [info.get("city"), info.get("state") or info.get("country")] if x),
+                       "web": info.get("website"), "ir": info.get("irWebsite"), "hq": ", ".join(x for x in [info.get("city"), info.get("state") or info.get("country")] if x),
                        "major": major,
                        "inst": _records(tk.institutional_holders, ["Date Reported", "Holder", "pctHeld", "Shares", "Value", "pctChange"], 10),
                        "funds": _records(tk.mutualfund_holders, ["Date Reported", "Holder", "pctHeld", "Shares", "Value", "pctChange"], 10),
