@@ -77,8 +77,10 @@ rTicks(lo,hi).forEach(v=>{s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Y(v)+'" y2="
 RM.forEach((m,i)=>{s+=rTx(X(i),h-8,m[0],'middle')});
 sets.slice().reverse().forEach((st,j)=>{const k=sets.length-1-j,c=cv[k];let d='';c.forEach((v,i)=>{if(v!=null)d+=(d?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)});
 s+='<path d="'+d+'" fill="none" style="stroke:'+st[2]+';opacity:'+st[3]+'" stroke-width="'+(k?1.5:2.25)+'"'+(st[4]?' stroke-dasharray="'+st[4]+'"':'')+'/>';
-if(!k)c.forEach((v,i)=>{if(v!=null)s+='<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="3" style="fill:var(--am)"><title>'+RM[i][0]+': '+f(v,2)+'%</title></circle>'})});
-el.innerHTML=s+'</svg>'}
+if(!k)c.forEach((v,i)=>{if(v!=null)s+='<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="3" style="fill:var(--am)"/>'})});
+el.innerHTML=s+'</svg>';const nm={Today:'Today','1M':'1 month ago','1Y':'1 year ago','5Y':'5 years ago'},dd=sets.map(st=>RDATA.d[st[1]]);
+chHover(el,RM.map((_,i)=>X(i)),i=>'<b>'+RM[i][0].replace('M',' month').replace('Y',' year')+' Treasury</b>'+sets.map((st,k)=>cv[k][i]==null?'':chRow(st[2],nm[st[0]]+(dd[k]?' <span class="mu">('+chDate(dd[k])+')</span>':''),f(cv[k][i],2)+'%')).join('')+(cv.length>1&&cv[0][i]!=null&&cv[1][i]!=null?chRow('transparent','Change vs '+nm[sets[1][0]].toLowerCase(),(cv[0][i]-cv[1][i]>=0?'+':'')+f((cv[0][i]-cv[1][i])*100,0)+' bp'):''),
+i=>sets.map((st,k)=>cv[k][i]==null?null:[X(i),Y(cv[k][i]),st[2]]).filter(Boolean),t,h-b)}
 function rHist(){const el=$('#rhc');if(!el)return;const id=RHS[RH],a=RDATA.s[id];if(!a){el.innerHTML='';return}
 const i0={'1Y':rBackI(12),'5Y':rBackI(60),'10Y':rBackI(120),'Max':0}[RR],pts=[];for(let i=i0;i<a.length;i++)if(a[i]!=null)pts.push([RDATA.d[i],a[i]]);
 const st=Math.ceil(pts.length/700),P2=pts.filter((p,i)=>i%st==0||i==pts.length-1);if(P2.length<2){el.innerHTML='<p class="mu">Not enough history for this range.</p>';$('#rhv').textContent='';return}
@@ -91,12 +93,9 @@ for(let j=0;j<nl;j++){const i=Math.round(j*(P2.length-1)/(nl-1)),d=P2[i][0];s+=r
 let d='';P2.forEach((p,i)=>{d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(p[1]*k).toFixed(1)});
 if(bp&&lo<0&&id.startsWith('T10')){const z=Y(0),cid='rclip'+Date.now();s+='<clipPath id="'+cid+'"><rect x="'+l+'" y="'+z+'" width="'+(w-l-r)+'" height="'+(h-b-z)+'"/></clipPath><path d="'+d+'L'+X(P2.length-1)+' '+z+'L'+l+' '+z+'Z" clip-path="url(#'+cid+')" style="fill:var(--dn);opacity:.22"/>'}
 if(lo<0&&hi>0)s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" style="stroke:var(--mu)" stroke-dasharray="3 3"/>';
-s+='<path d="'+d+'" fill="none" style="stroke:var(--am)" stroke-width="1.6"/><line id="rhx" y1="'+t+'" y2="'+(h-b)+'" style="stroke:var(--mu);display:none"/><circle id="rhd" r="3.5" style="fill:var(--am);display:none"/><rect x="'+l+'" y="'+t+'" width="'+(w-l-r)+'" height="'+(h-t-b)+'" fill="transparent"/></svg>';
-el.innerHTML=s;const rv=$('#rhv'),last=P2.at(-1),dflt=()=>{rv.innerHTML=RH+' <b>'+fm(last[1]*k)+'</b> <span class="mu">'+rDay(last[0])+'</span>'};dflt();
-const sv=el.querySelector('svg'),xl=sv.querySelector('#rhx'),dot=sv.querySelector('#rhd');
-sv.onmousemove=e=>{const bx=sv.getBoundingClientRect(),i=Math.max(0,Math.min(P2.length-1,Math.round((e.clientX-bx.left-l)/(w-l-r)*(P2.length-1)))),p=P2[i];
-xl.setAttribute('x1',X(i));xl.setAttribute('x2',X(i));xl.style.display='';dot.setAttribute('cx',X(i));dot.setAttribute('cy',Y(p[1]*k));dot.style.display='';rv.innerHTML=RH+' <b>'+fm(p[1]*k)+'</b> <span class="mu">'+rDay(p[0])+'</span>'};
-sv.onmouseleave=()=>{xl.style.display='none';dot.style.display='none';dflt()}}
+s+='<path d="'+d+'" fill="none" style="stroke:var(--am)" stroke-width="1.6"/></svg>';
+el.innerHTML=s;const rv=$('#rhv'),last=P2.at(-1);rv.innerHTML=RH+' <b>'+fm(last[1]*k)+'</b> <span class="mu">'+rDay(last[0])+'</span>';
+chHover(el,P2.map((_,i)=>X(i)),i=>'<b>'+chDay(P2[i][0])+'</b>'+chRow('var(--am)',RH,fm(P2[i][1]*k))+(i?chRow('transparent','Change from start',(P2[i][1]-P2[0][1]>=0?'+':'')+f((P2[i][1]-P2[0][1])*(bp?k:100),0)+' bp'):''),i=>[[X(i),Y(P2[i][1]*k),'var(--am)']],t,h-b)}
 function rPY(b){const el=$('#ypy');if(!el)return;const[w,h]=rFrame(el,220),y0=RB.y,ys=[];for(let j=0;j<=60;j++)ys.push(y0-3+j*.1);
 const pts=ys.map(y=>{const q=bond(RB.c,RB.t,y,RB.m);return q?[y,q.P]:null}).filter(Boolean),tan=y=>b.P*(1-b.md*(y-y0)/100);
 const ps=pts.map(p=>p[1]).concat(tan(ys[0]),tan(ys.at(-1)));let lo=Math.min(...ps),hi=Math.max(...ps);const pad=(hi-lo)*.06||1;lo-=pad;hi+=pad;
@@ -107,7 +106,7 @@ rTicks(ys[0],ys.at(-1),5).forEach(v=>{s+=rTx(X(v),h-12,f(v,v%1?1:0)+'%','middle'
 s+='<path d="M'+X(ys[0])+' '+Y(tan(ys[0]))+'L'+X(ys.at(-1))+' '+Y(tan(ys.at(-1)))+'" style="stroke:var(--mu)" stroke-dasharray="5 4" stroke-width="1.25"/>';
 s+='<path d="'+pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('')+'" fill="none" style="stroke:var(--am)" stroke-width="2"/>';
 s+='<circle cx="'+X(y0)+'" cy="'+Y(b.P)+'" r="4" style="fill:var(--am)"/>'+rTx(X(y0)+8,Y(b.P)-8,f(b.P,2)+' at '+f(y0,2)+'%','start','var(--tx)');
-el.innerHTML=s+'</svg>'}
+el.innerHTML=s+'</svg>';chHover(el,pts.map(p=>X(p[0])),i=>{const[y,P]=pts[i];return'<b>Yield '+f(y,2)+'%</b>'+chRow('var(--am)','Price',f(P,2))+chRow('var(--mu)','Price estimated from duration',f(tan(y),2))+chRow('transparent','Change vs today',(P-b.P>=0?'+':'')+f((P/b.P-1)*100,2)+'%')},i=>[[X(pts[i][0]),Y(pts[i][1]),'var(--am)'],[X(pts[i][0]),Y(tan(pts[i][0])),'var(--mu)']],t,h-b2)}
 function rDraw(){rCurveSvg();rHist();rCalc()}
 window.addEventListener('resize',()=>{if(tab==RT&&RDATA&&!RDATA.err){clearTimeout(RTO);RTO=setTimeout(rDraw,150)}});
 const _r6=render0;
