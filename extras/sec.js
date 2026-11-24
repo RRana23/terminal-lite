@@ -8,17 +8,17 @@ o.p=Promise.all([g('sec',HASSEC,'sec'),g('own',HASOWN,'own')]).then(()=>{o.ok=1}
 const fnum=v=>v==null?'–':Math.abs(v)>=1e9?f(v/1e9,1)+'B':Math.abs(v)>=1e6?f(v/1e6,0)+'M':f(v,2);
 const fpc2=v=>v==null||!isFinite(v)?'–':(v*100).toFixed(1)+'%';
 function coFA(c){const fa=c.sec&&c.sec.fa;if(!fa)return P('Financial statements','<p class="mu">No SEC financial data for '+cur+'. Banks and some companies report in formats this page does not read yet.</p>','c12');
-const R=fa.rows,yr=fa.ends.map(e=>'FY '+e.slice(0,4)),row=k=>R[k]?[k,...R[k].map(fnum)]:null,rat=(n,a,b)=>R[a]&&R[b]?[n,...R[a].map((x,i)=>x!=null&&R[b][i]?fpc2(x/R[b][i]):'–')]:null,
+const yh=c.sec.src=='yahoo',R=fa.rows,yr=fa.ends.map(e=>'FY '+e.slice(0,4)),row=k=>R[k]?[k,...R[k].map(fnum)]:null,rat=(n,a,b)=>R[a]&&R[b]?[n,...R[a].map((x,i)=>x!=null&&R[b][i]?fpc2(x/R[b][i]):'–')]:null,
 fcf=R['Operating cash flow']&&R['Capital spending']?['Free cash flow',...R['Operating cash flow'].map((x,i)=>x!=null&&R['Capital spending'][i]!=null?fnum(x-R['Capital spending'][i]):'–')]:null,
 gr=R.Revenue?['Revenue growth',...R.Revenue.map((x,i)=>i&&x!=null&&R.Revenue[i-1]?fpc2(x/R.Revenue[i-1]-1):'–')]:null,
 sec=(t,rows)=>'<tr><th colspan="'+(yr.length+1)+'" style="text-align:left;color:var(--am);padding-top:10px">'+t+'</th></tr>'+rows.filter(Boolean).map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('');
 Q.push(()=>{if(R.Revenue)line('far',[{d:R.Revenue.map(x=>x||0),c:'--am'}].concat(R['Net income']?[{d:R['Net income'].map(x=>x||0),c:'--up'}]:[]),x=>fnum(x))});
-return P('Annual financials, '+cur+' (USD, from 10-K filings)','<table><tr><th>Line</th>'+yr.map(y=>'<th>'+y+'</th>').join('')+'</tr>'
+return P('Annual financials, '+cur+(yh?' (USD, annual reports via Yahoo Finance)':' (USD, from 10-K filings)'),'<table><tr><th>Line</th>'+yr.map(y=>'<th>'+y+'</th>').join('')+'</tr>'
 +sec('Income statement',[row('Revenue'),gr,row('Gross profit'),rat('Gross margin','Gross profit','Revenue'),row('Operating income'),rat('Operating margin','Operating income','Revenue'),row('Net income'),rat('Net margin','Net income','Revenue'),row('Diluted EPS'),row('Diluted shares')])
 +sec('Cash flow',[row('Operating cash flow'),row('Capital spending'),fcf,row('Dividends paid'),row('Buybacks')])
 +sec('Balance sheet',[row('Cash'),row('Total assets'),row('Total liabilities'),row("Shareholders' equity"),row('Long-term debt')])+'</table>'
 +'<p><button class="in" data-a="fcopy" style="width:auto;cursor:pointer">Copy for Excel</button> <span id="fcm" class="mu"></span></p>','c8')
-+P('Revenue (amber) and net income (green)','<canvas id="far" class="sm" style="height:220px"></canvas><div class="mu">Fiscal years '+yr[0].slice(3)+' to '+yr.at(-1).slice(3)+'. Source: SEC EDGAR XBRL.</div>','c4')}
++P('Revenue (amber) and net income (green)','<canvas id="far" class="sm" style="height:220px"></canvas><div class="mu">Fiscal years '+yr[0].slice(3)+' to '+yr.at(-1).slice(3)+'. Source: '+(yh?'Yahoo Finance':'SEC EDGAR XBRL')+'.</div>','c4')}
 function coFil(c){const L=(c.sec&&c.sec.fil)||[],G={All:()=>1,'10-K / 10-Q':f=>/^10-[KQ]/.test(f),'8-K':f=>/^8-K/.test(f),'Insider (Form 4)':f=>f=='4',Proxy:f=>f=='DEF 14A','13D / 13G':f=>/^SC 13/.test(f)},M=L.filter(x=>G[FF](x.f));
 return P('SEC filings, '+cur,SG('ff',Object.keys(G),FF)+(M.length?T(['Date','Form','Description',''],M.slice(0,30).map(x=>[x.d,x.f,x.x||'–','<a target="_blank" rel="noopener" href="'+x.u+'">Open</a>'])):'<p class="mu">No filings of this type in the recent list.</p>')+(c.sec&&c.sec.cik?'<p><a target="_blank" rel="noopener" href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK='+c.sec.cik+'">All '+cur+' filings on EDGAR</a></p>':''),'c12')}
 function coOwn(c){const o=c.own;if(!o)return P('Ownership','<p class="mu">No ownership data for '+cur+'.</p>','c12');const m=o.major||{},H=a=>a&&a.length?T(['Holder','Shares','% held','Value','Change','Reported'],a.map(r=>[r.Holder||'–',fnum(r.Shares),fpc2(r.pctHeld),fbig(r.Value),r.pctChange==null?'–':pc(r.pctChange*100),r['Date Reported']||'–'])):'<p class="mu">None reported.</p>';
@@ -34,7 +34,7 @@ function company(){if(!CO[cur])return P('Company','<p class="mu">Pick a stock in
 if(!c||!c.ok){coLoad(cur).then(()=>{if(tab==CT)render0()});return P('Company','<p class="mu m">Loading '+cur+'…</p>','c12')}
 return '<section class="p c12" style="padding:6px 12px">'+SG('cv',['Overview','Financials','Filings','Ownership','Insiders'],CV)+'</section>'+({Overview:coOver,Financials:coFA,Filings:coFil,Ownership:coOwn,Insiders:coIns}[CV])(c)}
 const _r0=render0;
-render0=function(){if(tab!=CT)_r0();else{Q=[];$('#hd').textContent=ac+' '+(CO[ac]?CO[ac][0]:EXT[ac].n);$('#v').innerHTML='<div class="mu m" style="margin-bottom:8px">Statements and filings from SEC EDGAR. Profile, ownership and insider trades from Yahoo Finance. Updated weekly.</div><div class="grid">'+company()+'</div>';requestAnimationFrame(()=>Q.forEach(g=>g()))}
+render0=function(){if(tab!=CT)_r0();else{Q=[];$('#hd').textContent=ac+' '+(CO[ac]?CO[ac][0]:EXT[ac].n);$('#v').innerHTML='<div class="mu m" style="margin-bottom:8px">Statements and filings from SEC EDGAR or Yahoo Finance. Profile, ownership and insider trades from Yahoo Finance. Updated weekly.</div><div class="grid">'+company()+'</div>';requestAnimationFrame(()=>Q.forEach(g=>g()))}
 $('#nav').innerHTML=[0,CT,1,2,3,4].map(i=>'<button data-a="tab" data-v="'+i+'" class="'+(i==tab?'on':'')+'">'+TABS[i]+'</button>').join('')};
 // link from the Markets tab fundamentals panel to the company page
 const _h0b=home0;home0=function(){return _h0b().replace(cur+' fundamentals','<button data-a="co" data-v="'+cur+'" style="background:none;border:0;color:var(--am);cursor:pointer;padding:0;font:inherit">'+cur+' company page</button> · fundamentals')};

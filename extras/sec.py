@@ -73,6 +73,56 @@ def filings(sub, cik):
         if len(out) >= 60: break
     return out
 
+# ---- fallback when SEC blocks GitHub's servers: the same statements and filing list via Yahoo Finance ----
+YROWS = {"Revenue": ("income_stmt", ["Total Revenue", "Operating Revenue"]), "Gross profit": ("income_stmt", ["Gross Profit"]),
+         "Operating income": ("income_stmt", ["Operating Income"]), "Net income": ("income_stmt", ["Net Income", "Net Income Common Stockholders"]),
+         "Diluted EPS": ("income_stmt", ["Diluted EPS"]), "Diluted shares": ("income_stmt", ["Diluted Average Shares"]),
+         "Operating cash flow": ("cashflow", ["Operating Cash Flow"]), "Capital spending": ("cashflow", ["Capital Expenditure"]),
+         "Dividends paid": ("cashflow", ["Cash Dividends Paid", "Common Stock Dividend Paid"]), "Buybacks": ("cashflow", ["Repurchase Of Capital Stock", "Common Stock Payments"]),
+         "Cash": ("balance_sheet", ["Cash And Cash Equivalents"]), "Total assets": ("balance_sheet", ["Total Assets"]),
+         "Total liabilities": ("balance_sheet", ["Total Liabilities Net Minority Interest"]), "Shareholders' equity": ("balance_sheet", ["Stockholders Equity"]),
+         "Long-term debt": ("balance_sheet", ["Long Term Debt"])}
+OUTFLOWS = {"Capital spending", "Dividends paid", "Buybacks"}
+
+def _yahoo_one(t):
+    import yfinance as yf
+    for attempt in range(3):
+        try:
+            tk = yf.Ticker(t)
+            dfs = {k: getattr(tk, k) for k in ("income_stmt", "cashflow", "balance_sheet")}
+            raw = {}
+            for label, (src, names) in YROWS.items():
+                df = dfs[src]
+                if df is None or df.empty: continue
+                for nm in names:
+                    if nm in df.index:
+                        s = df.loc[nm].dropna()
+                        raw[label] = {c.isoformat()[:10]: (abs(float(v)) if label in OUTFLOWS else float(v)) for c, v in s.items()}
+                        break
+            ends = sorted({e for s in raw.values() for e in s})[-5:]
+            r2 = lambda v: v if v is None else (round(v, 2) if abs(v) < 1000 else int(v))
+            fa = {"ends": ends, "rows": {k: [r2(s.get(e)) for e in ends] for k, s in raw.items()}} if ends else None
+            fil = []
+            for x in (tk.sec_filings or [])[:60]:
+                d = x.get("date"); d = d.isoformat()[:10] if hasattr(d, "isoformat") else str(d)[:10]
+                fil.append({"f": x.get("type", ""), "d": d, "x": x.get("title", ""), "u": x.get("edgarUrl", "")})
+            return t, ({"cik": None, "fa": fa, "fil": fil, "src": "yahoo"} if fa or fil else None)
+        except Exception:
+            time.sleep(2 + 3 * attempt)
+    return t, None
+
+def _yahoo(syms, old):
+    from concurrent.futures import ThreadPoolExecutor
+    out, miss = {}, 0
+    with ThreadPoolExecutor(4) as pool:
+        for t, rec in pool.map(_yahoo_one, syms):
+            if rec: out[t] = rec
+            else:
+                miss += 1
+                if t in old: out[t] = old[t]
+    print(f"Statements via Yahoo Finance: {len(out)} companies ({miss} failed)")
+    return out
+
 def fetch(ctx):
     prev = ctx.get("prev")
     if prev and (datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) - datetime.datetime.fromisoformat(prev["_ts"])).days < 6:
@@ -104,6 +154,9 @@ def fetch(ctx):
         if t in old: out[t] = old[t]
     print(f"SEC: {len(out)} companies ({miss} missing; previous copy kept where available)")
     for e in ERRS: print("SEC error:", e)
+    if got == 0:
+        print("SEC is blocking this server, switching to Yahoo Finance for statements and filings")
+        out = _yahoo(ctx["syms"], old)
     return {"_ts": datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds"), "d": out}
 
 def ok(data):
