@@ -54,7 +54,7 @@ def _one(t):
                  "x": _d(cal.get("Ex-Dividend Date")), "p": _d(cal.get("Dividend Date"))}
             return t, {"c": {k: v for k, v in c.items() if v is not None}, "n": _news(tk.news, 10)}
         except Exception:
-            time.sleep(2 + 3 * attempt)
+            time.sleep(1 + 2 * attempt)
     return t, None
 
 def _fred(path, **params):
@@ -93,12 +93,21 @@ def fetch(ctx):
     import yfinance as yf
     prev = (ctx.get("prev") or {}).get("d", {})
     out, miss = {}, 0
+    syms, got = list(ctx["syms"]), {}
     with ThreadPoolExecutor(4) as pool:
-        for t, d in pool.map(_one, ctx["syms"]):
-            if d: out[t] = d
-            else:
-                miss += 1
-                if t in prev: out[t] = prev[t]
+        for i in range(0, len(syms), 40):  # in chunks, with progress; stop early if Yahoo refuses most requests
+            got.update(dict(pool.map(_one, syms[i:i + 40])))
+            n_ok = sum(1 for v in got.values() if v)
+            print(f"News and events: {len(got)}/{len(syms)} checked, {n_ok} ok", flush=True)
+            if n_ok < 0.25 * len(got):
+                print("News and events: Yahoo is refusing most requests right now; stopping early and keeping the previous copy", flush=True)
+                break
+    for t in syms:
+        d = got.get(t)
+        if d: out[t] = d
+        else:
+            miss += 1
+            if t in prev: out[t] = prev[t]
     top, seen = [], set()
     for s in ["^GSPC", "SPY", "QQQ", "^DJI"]:
         try:
