@@ -58,6 +58,7 @@ flowchart LR
 - **Nightly pipeline.** A scheduled GitHub Action runs `update.py`, which downloads the data, checks each source looks complete, and builds the site. If a source fails, the last good copy (kept in the Actions cache) is used, so the site never breaks.
 - **Loads fast.** The page starts with a ~400 KB summary; each ticker's 10-year history, filings or option chain loads only when you open it.
 - **Add-on design.** Each feature lives in `extras/`: a `.py` file that fetches its data and a `.js` file that adds its screens. New features don't touch the core.
+- **Every chart is readable.** Hover over (or tap) any chart for the date and the values under the pointer. One shared helper, `extras/a_chart.js`, does this for every chart, and new charts use it too.
 - **Fallbacks.** When SEC EDGAR blocks the build server, statements and filings come from Yahoo Finance instead.
 
 ## Repository
@@ -65,8 +66,9 @@ flowchart LR
 | Path | Purpose |
 |---|---|
 | `template.html` | Core page and app code |
+| `CLAUDE.md` | Conventions for working on the code, including the chart hover rule |
 | `update.py` | Fetches data and builds `public/` |
-| `extras/` | Add-ons: fundamentals, company pages, news and events, options, rates, jobs, growth and inflation, earnings calls and M&A, DCF, estimates, credit and dividends, ratings, moving averages, live prices, design, command bar, guide, about, tab order |
+| `extras/` | Add-ons: chart hover, fundamentals, company pages, news and events, options, rates, jobs, growth and inflation, earnings calls and M&A, DCF, estimates, credit and dividends, ratings, moving averages, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
 
