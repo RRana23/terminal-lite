@@ -1,0 +1,10 @@
+/* Moving average controls on the Markets chart */
+.mac{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 4px;font:12px 'IBM Plex Sans',system-ui,sans-serif}
+.mac input.in{width:78px;padding:4px 8px}
+.mac button.in{width:auto;padding:4px 10px}
+.mac .mx{font:12px 'IBM Plex Mono',ui-monospace,monospace;padding:3px 8px;border:1px solid var(--ln);border-radius:var(--r);background:transparent;color:var(--tx);cursor:pointer}
+.mac .mx:hover{border-color:var(--dn);color:var(--dn)}
+.mal{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0;font:12px 'IBM Plex Mono',ui-monospace,monospace;color:var(--tx)}
+.mal span{display:inline-flex;align-items:center;gap:5px}
+.mal i{display:inline-block;width:12px;height:3px;border-radius:2px}
+.mal em{font-style:normal}

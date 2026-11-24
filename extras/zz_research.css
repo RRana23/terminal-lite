@@ -1,0 +1,23 @@
+/* Ratings and Dividends & Earnings views on the Company tab */
+.rsh{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;margin-bottom:6px}
+.rsh p{margin:0 0 8px;font:13px/1.55 'IBM Plex Sans',system-ui,sans-serif}
+.rsb{border:1px solid var(--ln);border-radius:var(--r);overflow:hidden;text-align:center}
+.rsb b{display:block;padding:10px 6px;background:var(--c);color:#fff;font:600 16px 'IBM Plex Sans',system-ui,sans-serif}
+.rsb span{display:block;margin-top:8px;font:600 26px 'IBM Plex Mono',ui-monospace,monospace;color:var(--tx)}
+.rsb small{display:block;margin:0 0 10px;font:12px 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu)}
+.rsd{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+table.rst td:nth-child(2),table.rst th:nth-child(2),table.rst td:nth-child(3),table.rst th:nth-child(3){text-align:left;white-space:nowrap;font-family:'IBM Plex Sans',system-ui,sans-serif}
+.rsf{margin:0 0 10px;font:13px 'IBM Plex Sans',system-ui,sans-serif}
+.rsgrid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ln);border-radius:var(--r);margin-bottom:10px}
+.rsc{padding:12px;min-width:0}
+.rsc+.rsc{border-left:1px solid var(--ln)}
+.rsc h4{margin:0 0 4px;font:600 13px 'IBM Plex Sans',system-ui,sans-serif;color:var(--tx)}
+.rss{font-size:12px;margin-bottom:10px}
+.rsy{display:grid;grid-template-columns:1fr;gap:2px;margin-bottom:10px}
+.rsy i{display:block;height:12px;border-radius:3px;min-width:3px}
+.rsy b{font:600 16px 'IBM Plex Mono',ui-monospace,monospace;color:var(--tx)}
+.rsy span{font:12px 'IBM Plex Sans',system-ui,sans-serif;color:var(--mu)}
+.rsdns{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-around}
+.rsdn{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:96px}
+.rsdn span{font:11.5px/1.3 'IBM Plex Sans',system-ui,sans-serif}
+@media(max-width:760px){.rsgrid{grid-template-columns:1fr}.rsc+.rsc{border-left:0;border-top:1px solid var(--ln)}.rsh{grid-template-columns:1fr}}
