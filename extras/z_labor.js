@@ -44,6 +44,19 @@ return P('Labor market at a glance',key,'c4')
 +P('Sahm recession rule','<div id="lsahm" class="rsvg"></div><div class="mu lcap">The 3-month average unemployment rate minus its low over the prior 12 months. A reading of 0.50 or more has marked the start of every US recession since 1970, though it has given false alarms too. Created by economist Claudia Sahm.</div>','c4')
 +'<div class="c12 mu lcap" style="grid-column:1/-1">Source: FRED, St. Louis Fed (Bureau of Labor Statistics, Department of Labor). Updated '+(D.asof||'').slice(0,10)+'.</div>'}
 // ---------- charts ----------
+// Hover readout for any SVG chart: a dashed guide, dots on each series, and a tooltip with the date and values.
+// xs = pixel x of each point; tip(i) = tooltip HTML; marks(i) = [[x,y,color],...]. Works with mouse and touch.
+function chHover(el,xs,tip,marks,y0,y1){const sv=el&&el.querySelector('svg');if(!sv||!xs.length)return;el.style.position='relative';
+let tt=el.querySelector('.ctt');if(!tt){tt=document.createElement('div');tt.className='ctt';el.appendChild(tt)}
+const NS='http://www.w3.org/2000/svg',g=document.createElementNS(NS,'g'),vl=document.createElementNS(NS,'line');g.style.display='none';g.setAttribute('pointer-events','none');
+vl.setAttribute('y1',y0);vl.setAttribute('y2',y1);vl.setAttribute('style','stroke:var(--mu);stroke-dasharray:3 3');g.appendChild(vl);sv.appendChild(g);
+const mv=e=>{const bx=sv.getBoundingClientRect(),x=e.clientX-bx.left;let i=0,bd=1e9;for(let k=0;k<xs.length;k++){const d=Math.abs(xs[k]-x);if(d<bd){bd=d;i=k}}
+vl.setAttribute('x1',xs[i]);vl.setAttribute('x2',xs[i]);g.querySelectorAll('circle').forEach(c=>c.remove());
+(marks?marks(i):[]).forEach(([cx,cy,c])=>{if(cx==null||cy==null||!isFinite(cy))return;const k=document.createElementNS(NS,'circle');k.setAttribute('cx',cx);k.setAttribute('cy',cy);k.setAttribute('r',3.5);k.setAttribute('style','fill:'+c+';stroke:var(--pn);stroke-width:1.5');g.appendChild(k)});
+g.style.display='';tt.innerHTML=tip(i);tt.style.display='block';const w=tt.offsetWidth,W=el.clientWidth;let L=xs[i]+14;if(L+w>W)L=xs[i]-14-w;tt.style.left=Math.max(0,L)+'px';tt.style.top=Math.max(0,Math.min(e.clientY-bx.top-20,bx.height-tt.offsetHeight))+'px'};
+sv.addEventListener('pointermove',mv);sv.addEventListener('pointerdown',mv);sv.addEventListener('pointerleave',()=>{g.style.display='none';tt.style.display='none'})}
+const chRow=(c,n,v)=>'<div><i style="background:'+c+'"></i>'+n+' <b>'+v+'</b></div>';
+const chDate=d=>{if(!d)return'';const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+d.slice(5,7)-1];return d.length>7&&d.slice(8,10)!='01'?m+' '+(+d.slice(8,10))+', '+d.slice(0,4):m+' '+d.slice(0,4)};
 function lTk(lo,hi,n=4){const raw=(hi-lo)/n||1,p=10**Math.floor(Math.log10(raw)),st=[1,2,2.5,5,10].map(x=>x*p).find(x=>x>=raw);const t=[];for(let v=Math.ceil(lo/st)*st;v<=hi+1e-9;v+=st)t.push(+v.toFixed(6));return t}
 const lTx=(x,y,s,a='start',c='var(--mu)')=>'<text x="'+x+'" y="'+y+'" text-anchor="'+a+'" style="fill:'+c+'">'+s+'</text>';
 function lAxis(w,h,l,r,t,b,lo,hi,t0,t1,fm,Y,X){let s='';lTk(lo,hi).forEach(v=>{s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" style="stroke:var(--ln)"/>'+lTx(l-6,Y(v)+4,fm(v),'end')});
@@ -53,23 +66,25 @@ const w=Math.max(260,el.clientWidth),h=o.h||220,l=o.l||48,r=12,t=8,b=24,all=S.fl
 let lo=Math.min(...all.map(p=>p[1]),...(o.ref!=null?[o.ref]:[])),hi=Math.max(...all.map(p=>p[1]),...(o.ref!=null?[o.ref]:[]));const pad=(hi-lo)*.08||1;lo-=pad;hi+=pad;if(o.floor0&&lo<0&&Math.min(...all.map(p=>p[1]))>=0)lo=0;
 const X=d=>l+(Date.parse(d)-t0)/((t1-t0)||1)*(w-l-r),Y=v=>t+(hi-v)/(hi-lo)*(h-t-b),fm=o.fm||(v=>f(v,1));
 let s='<svg width="'+w+'" height="'+h+'" role="img" aria-label="'+(o.label||'chart')+'">'+lAxis(w,h,l,r,t,b,lo,hi,t0,t1,fm,Y,X);
+(o.bands||[]).forEach(([a0,a1])=>{const x0=Math.max(l,X(a0)),x1=Math.min(w-r,X(a1));if(x1>x0)s+='<rect x="'+x0.toFixed(1)+'" y="'+t+'" width="'+Math.max(1,x1-x0).toFixed(1)+'" height="'+(h-t-b)+'" style="fill:var(--mu);opacity:.13"/>'});
 if(o.ref!=null)s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Y(o.ref)+'" y2="'+Y(o.ref)+'" style="stroke:'+(o.refc||'var(--mu)')+'" stroke-dasharray="4 3"/>';
 S.forEach(x=>{s+='<path d="'+x.p.map((q,i)=>(i?'L':'M')+X(q[0]).toFixed(1)+' '+Y(q[1]).toFixed(1)).join('')+'" fill="none" style="stroke:'+x.c+'" stroke-width="'+(x.w||1.75)+'"'+(x.dash?' stroke-dasharray="'+x.dash+'"':'')+'/>'});
 const L0=S[0].p.at(-1);s+='<circle cx="'+X(L0[0])+'" cy="'+Y(L0[1])+'" r="3.5" style="fill:'+S[0].c+'"/>';
-el.innerHTML=s+'</svg>'}
+el.innerHTML=s+'</svg>';const base=S[0].p,maps=S.map(x=>new Map(x.p));
+chHover(el,base.map(q=>X(q[0])),i=>{const d=base[i][0];return'<b>'+(o.dl||chDate)(d)+'</b>'+S.map((x,j)=>{const v=maps[j].get(d);return v==null?'':chRow(x.c,x.n||'',(o.tf||fm)(v))}).join('')},i=>{const d=base[i][0];return S.map((x,j)=>{const v=maps[j].get(d);return[X(d),v==null?null:Y(v),x.c]})},t,h-b)}
 function lBars(id,p,avg){const el=$('#'+id);if(!el||!p.length)return;const w=Math.max(260,el.clientWidth),h=w>700?400:230,l=52,r=12,t=8,b=24,vs=p.map(q=>q[1]);let lo=Math.min(0,...vs),hi=Math.max(0,...vs);const pad=(hi-lo)*.08||1;lo-=lo<0?pad:0;hi+=pad;
 const bw=(w-l-r)/p.length,X=i=>l+i*bw,Y=v=>t+(hi-v)/(hi-lo)*(h-t-b),t0=Date.parse(p[0][0]),t1=Date.parse(p.at(-1)[0]),XD=d=>l+bw/2+(Date.parse(d)-t0)/((t1-t0)||1)*(w-l-r-bw);
 let s='<svg width="'+w+'" height="'+h+'" role="img" aria-label="Monthly payroll change">'+lAxis(w,h,l,r,t,b,lo,hi,t0,t1,v=>f(v,0),Y,XD);
 p.forEach((q,i)=>{const y0=Y(0),y1=Y(q[1]);s+='<rect x="'+(X(i)+bw*.15).toFixed(1)+'" y="'+Math.min(y0,y1).toFixed(1)+'" width="'+(bw*.7).toFixed(1)+'" height="'+Math.max(1,Math.abs(y1-y0)).toFixed(1)+'" style="fill:'+(q[1]<0?'var(--dn)':'var(--am)')+';opacity:.85"><title>'+lMon(q[0])+': '+lK(q[1])+'</title></rect>'});
 s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" style="stroke:var(--mu)"/>';
 if(avg&&avg.length>1)s+='<path d="'+avg.map((q,i)=>(i?'L':'M')+XD(q[0]).toFixed(1)+' '+Y(q[1]).toFixed(1)).join('')+'" fill="none" style="stroke:var(--tx)" stroke-width="1.75"/>';
-el.innerHTML=s+'</svg>'}
+el.innerHTML=s+'</svg>';const am=new Map(avg||[]);chHover(el,p.map((q,i)=>X(i)+bw/2),i=>'<b>'+chDate(p[i][0])+'</b>'+chRow(p[i][1]<0?'var(--dn)':'var(--am)','Change',lK(p[i][1]))+(am.has(p[i][0])?chRow('var(--tx)','3-month avg',lK(am.get(p[i][0]))):''),i=>[[X(i)+bw/2,Y(p[i][1]),p[i][1]<0?'var(--dn)':'var(--am)']].concat(am.has(p[i][0])?[[X(i)+bw/2,Y(am.get(p[i][0])),'var(--tx)']]:[]),t,h-b)}
 function lDraw(){if(!LDATA||LDATA.err||!$('#lpay'))return;const pc=lChg('PAYEMS').slice(-36),av=lAvg(lChg('PAYEMS'),3).filter(q=>q[0]>=pc[0][0]);lBars('lpay',pc,av);
-const mo={'5Y':60,'10Y':120,'Since 2000':400}[LR];lLine('lur',[{p:lSince(lPts('UNRATE'),mo),c:'var(--am)',w:2},{p:lSince(lPts('U6RATE'),mo),c:'var(--mu)'}],{fm:v=>f(v,0)+'%',label:'Unemployment rate'});
-lLine('lwg',[{p:lYoY('CES0500000003').filter(q=>q[0]>='2008-01-01'),c:'var(--up)',w:2},{p:lYoY('CPIAUCSL').filter(q=>q[0]>='2008-01-01'),c:'var(--dn)'}],{fm:v=>f(v,0)+'%',ref:0,label:'Wage growth vs inflation'});
-const ic=lSince(lPts('ICSA'),24).map(q=>[q[0],q[1]/1e3]);lLine('lic',[{p:ic,c:'var(--am)',w:1.25},{p:lAvg(ic,4),c:'var(--tx)',w:2}],{fm:v=>f(v,0)+'K',label:'Initial jobless claims'});
-const un=new Map(lPts('UNEMPLOY'));lLine('ljo',[{p:lPts('JTSJOL').map(q=>un.get(q[0])?[q[0],q[1]/un.get(q[0])]:null).filter(Boolean),c:'var(--am)',w:2}],{fm:v=>f(v,1),ref:1,label:'Job openings per unemployed person'});
-const sm=lSahm();if(sm)lLine('lsahm',[{p:sm.filter(q=>q[0]>='2000-01-01'),c:'var(--am)',w:1.75}],{fm:v=>f(v,1),ref:.5,refc:'var(--dn)',h:170,label:'Sahm rule'})}
+const mo={'5Y':60,'10Y':120,'Since 2000':400}[LR];lLine('lur',[{p:lSince(lPts('UNRATE'),mo),c:'var(--am)',w:2,n:'U-3'},{p:lSince(lPts('U6RATE'),mo),c:'var(--mu)',n:'U-6'}],{fm:v=>f(v,0)+'%',tf:v=>f(v,1)+'%',label:'Unemployment rate'});
+lLine('lwg',[{p:lYoY('CES0500000003').filter(q=>q[0]>='2008-01-01'),c:'var(--up)',w:2,n:'Hourly earnings'},{p:lYoY('CPIAUCSL').filter(q=>q[0]>='2008-01-01'),c:'var(--dn)',n:'CPI'}],{fm:v=>f(v,0)+'%',tf:v=>f(v,1)+'%',ref:0,label:'Wage growth vs inflation'});
+const ic=lSince(lPts('ICSA'),24).map(q=>[q[0],q[1]/1e3]);lLine('lic',[{p:ic,c:'var(--am)',w:1.25,n:'Weekly'},{p:lAvg(ic,4),c:'var(--tx)',w:2,n:'4-week avg'}],{fm:v=>f(v,0)+'K',label:'Initial jobless claims'});
+const un=new Map(lPts('UNEMPLOY'));lLine('ljo',[{p:lPts('JTSJOL').map(q=>un.get(q[0])?[q[0],q[1]/un.get(q[0])]:null).filter(Boolean),c:'var(--am)',w:2,n:'Openings per unemployed'}],{fm:v=>f(v,1),tf:v=>f(v,2),ref:1,label:'Job openings per unemployed person'});
+const sm=lSahm();if(sm)lLine('lsahm',[{p:sm.filter(q=>q[0]>='2000-01-01'),c:'var(--am)',w:1.75,n:'Sahm rule'}],{fm:v=>f(v,1),tf:v=>f(v,2)+' pts',ref:.5,refc:'var(--dn)',h:170,label:'Sahm rule'})}
 window.addEventListener('resize',()=>{if(tab==1&&EV2=='Jobs'){clearTimeout(window.LTO);window.LTO=setTimeout(lDraw,150)}});
 // Economy tab: Inflation and housing (existing) | Jobs (new)
 const _econ=econ;
