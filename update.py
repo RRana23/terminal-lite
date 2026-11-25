@@ -9,24 +9,36 @@ CACHE = "cache"
 os.makedirs(CACHE, exist_ok=True)
 
 # ---------- fetch ----------
+def _members(url):
+    html = requests.get(url, headers=H, timeout=60).text
+    t = next(x for x in pd.read_html(io.StringIO(html)) if "Symbol" in x.columns and "Security" in x.columns)
+    return {str(s).replace(".", "-"): n for s, n in zip(t.Symbol, t.Security)}
+
 def fetch_sp500():
+    """S&P 500 (large caps) plus the S&P MidCap 400. Mid caps are tagged "x": 4. Cache name stays sp500."""
     import yfinance as yf
-    html = requests.get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", headers=H, timeout=60).text
-    t = pd.read_html(io.StringIO(html))[0]
-    names = t.set_index("Symbol").Security
-    syms = t.Symbol.str.replace(".", "-", regex=False).tolist()
+    big = _members("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
+    try:
+        mid = {s: n for s, n in _members("https://en.wikipedia.org/wiki/List_of_S%26P_400_companies").items() if s not in big}
+    except Exception as e:
+        print("S&P 400 list failed, large caps only:", e); mid = {}
+    names = {**big, **mid}; syms = list(names)
     d = yf.download(syms, period="10y", group_by="ticker", auto_adjust=True, threads=True, progress=False)
     out = {}
     for s in syms:
         try:
             x = d[s].dropna()
             if len(x) < 250: continue
-            out[s] = {"n": names[s.replace("-", ".")], "d": [i.strftime("%y%m%d") for i in x.index],
+            out[s] = {"n": names[s], "d": [i.strftime("%y%m%d") for i in x.index],
                       "o": x.Open.round(2).tolist(), "h": x.High.round(2).tolist(),
                       "l": x.Low.round(2).tolist(), "c": x.Close.round(2).tolist(),
                       "vol": [int(v) for v in x.Volume.fillna(0)]}
+            if s in mid: out[s]["x"] = 4
         except Exception: pass
-    print("S&P 500:", len(out)); return out
+    prev = load("sp500") or {}
+    for s in syms:  # a ticker Yahoo skipped tonight keeps yesterday's prices rather than vanishing from the site
+        if s not in out and s in prev: out[s] = dict(prev[s], **({"x": 4} if s in mid else {}))
+    print("Stocks:", sum(1 for v in out.values() if "x" not in v), "S&P 500 and", sum(1 for v in out.values() if "x" in v), "MidCap 400"); return out
 
 G = {"ETFs": "SPY QQQ IWM VOO IVV VTI EEM EFA VEA VWO GLD SLV USO XLF XLE XLK XLV XLI XLY XLP XLU XLB XLRE XLC SMH SOXX ARKK VNQ VUG VTV IWD IWF IJH IJR QQQM SCHD JEPI DIA TQQQ SQQQ SOXL KRE XBI IBIT IEMG IXUS ITOT SCHB VXUS RSP",
      "Indexes": "^GSPC ^DJI ^IXIC ^RUT ^VIX ^FTSE ^N225 ^GDAXI ^HSI ^STOXX50E",
@@ -168,7 +180,7 @@ def build():
     fn = lambda t: re.sub(r"[^A-Za-z0-9-]", "_", t)
     master = max((v["d"] for v in D.values()), key=len)
     C = pd.DataFrame({t: pd.Series(v["c"], index=v["d"]) for t, v in D.items()}).reindex(master)
-    ret = C.pct_change(); mkt = ret.mean(axis=1)
+    ret = C.pct_change(); mkt = ret[[t for t, v in D.items() if "x" not in v]].mean(axis=1)  # the average S&P 500 stock
     S = {}
     for t, v in D.items():
         r = ret[t].dropna().tail(250); m = mkt.loc[r.index]; c = v["c"]; n = len(c)
@@ -177,6 +189,7 @@ def build():
                 "mom": round((c[n-22] / c[n-253] - 1) * 100, 2) if n > 253 else None,
                 "y": round((c[-1] / c[-253] - 1) * 100, 2) if n > 252 else None,
                 "dd": round((c[-1] / max(c[-252:]) - 1) * 100, 2), "rsi": round(rsi(np.array(c)), 1)}
+        if v.get("x"): S[t]["x"] = v["x"]
         f = {k: v[k] for k in ("o", "h", "l", "c", "vol") if k in v}
         if v["d"] != master: f["d"] = v["d"]
         json.dump(f, open(f"{out}/data/s/{fn(t)}.json", "w"), separators=(",", ":"))
@@ -196,7 +209,7 @@ def build():
             for k in ("vol", "fvol", "fsym"):
                 if k in x: rec[k] = x[k]
             if t in ("^GSPC",) and "vol" not in rec:  # index volume missing: add up the members' volume
-                V = pd.DataFrame({u: pd.Series(w["vol"], index=w["d"]) for u, w in D.items() if "vol" in w})
+                V = pd.DataFrame({u: pd.Series(w["vol"], index=w["d"]) for u, w in D.items() if "vol" in w and "x" not in w})
                 if len(V.columns) > 400:
                     tot = V.sum(axis=1); rec["vol"] = [int(tot.get(d, 0)) for d in x["d"]]; rec["vsum"] = 1
             json.dump(rec, open(f"{out}/data/x/{fn(t)}.json", "w"), separators=(",", ":"))
@@ -228,6 +241,8 @@ if __name__ == "__main__":
         save_if_ok("extra", fetch_extra, lambda v: sum(len(x) for x in v.values()) > 100)
         save_if_ok("housing", fetch_housing, lambda v: len(v["fred"]) == len(FRED) and len(v["zillow"]) == 3)
         syms = list(load("sp500") or {})
+        k = (datetime.date.today().toordinal() * 97) % max(1, len(syms))
+        syms = syms[k:] + syms[:k]  # nightly rotation: a module Yahoo cuts off partway misses different names each night
         for m in EXTRAS:
             save_if_ok(m.NAME, lambda m=m: m.fetch({"syms": syms, "prev": load(m.NAME)}), m.ok, required=False)
     build()
