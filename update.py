@@ -23,7 +23,8 @@ def fetch_sp500():
             if len(x) < 250: continue
             out[s] = {"n": names[s.replace("-", ".")], "d": [i.strftime("%y%m%d") for i in x.index],
                       "o": x.Open.round(2).tolist(), "h": x.High.round(2).tolist(),
-                      "l": x.Low.round(2).tolist(), "c": x.Close.round(2).tolist()}
+                      "l": x.Low.round(2).tolist(), "c": x.Close.round(2).tolist(),
+                      "vol": [int(v) for v in x.Volume.fillna(0)]}
         except Exception: pass
     print("S&P 500:", len(out)); return out
 
@@ -42,11 +43,29 @@ def fetch_extra():
         out[k] = {}
         for t in ts:
             try:
-                x = d[t]["Close"].dropna()
+                y = d[t].dropna(subset=["Close"]); x = y["Close"]
                 if len(x) < 100: continue
-                out[k][t] = {"d": [i.strftime("%y%m%d") for i in x.index], "c": [round(float(v), 4) for v in x]}
+                r4 = lambda col: [round(float(v), 4) for v in y[col].fillna(y["Close"])]
+                out[k][t] = {"d": [i.strftime("%y%m%d") for i in x.index], "c": [round(float(v), 4) for v in x],
+                             "h": r4("High"), "l": r4("Low")}
+                vol = y["Volume"].fillna(0)
+                if vol.tail(250).gt(0).mean() > .5: out[k][t]["vol"] = [int(v) for v in vol]
             except Exception: pass
+    # spot currencies trade over the counter with no published volume; CME futures volume is the usual stand-in
+    try:
+        fx = {t: f for t, f in FUT.items() if t in out.get("Currencies", {})}
+        fd = yf.download(sorted(set(fx.values())), period="10y", auto_adjust=True, group_by="ticker", threads=True, progress=False)
+        for t, f in fx.items():
+            try:
+                v = fd[f]["Volume"].dropna(); m = {i.strftime("%y%m%d"): int(x) for i, x in v.items()}
+                o = out["Currencies"][t]; o["fvol"] = [m.get(d, 0) for d in o["d"]]; o["fsym"] = f
+            except Exception: pass
+    except Exception as e:
+        print("Currency futures volume skipped:", e)
     print("Other assets:", {k: len(v) for k, v in out.items()}); return out
+
+FUT = {"EURUSD=X": "6E=F", "JPY=X": "6J=F", "GBPUSD=X": "6B=F", "AUDUSD=X": "6A=F", "CAD=X": "6C=F", "CHF=X": "6S=F",
+       "NZDUSD=X": "6N=F", "MXN=X": "6M=F"}
 
 FRED = {"CPIAUCSL": "CPI", "CPILFESL": "Core CPI", "MSPUS": "Median sale price", "ASPUS": "Average sale price",
         "MSACSR": "Months supply (new homes)", "ACTLISCOUUS": "Active listings", "PENLISCOUUS": "Pending listings",
@@ -158,7 +177,7 @@ def build():
                 "mom": round((c[n-22] / c[n-253] - 1) * 100, 2) if n > 253 else None,
                 "y": round((c[-1] / c[-253] - 1) * 100, 2) if n > 252 else None,
                 "dd": round((c[-1] / max(c[-252:]) - 1) * 100, 2), "rsi": round(rsi(np.array(c)), 1)}
-        f = {k: v[k] for k in "ohlc"}
+        f = {k: v[k] for k in ("o", "h", "l", "c", "vol") if k in v}
         if v["d"] != master: f["d"] = v["d"]
         json.dump(f, open(f"{out}/data/s/{fn(t)}.json", "w"), separators=(",", ":"))
     X = {}
@@ -171,7 +190,16 @@ def build():
             X[t] = {"g": GL[g], "n": NM.get(t, t), "p": c[-1],
                     "b": round(float(np.cov(r, m)[0, 1] / np.var(m, ddof=1)), 2),
                     "v": round(float(own.std() * np.sqrt(365 if g == "Crypto" else 252) * 100), 1)}
-            json.dump({"d": x["d"], "c": c}, open(f"{out}/data/x/{fn(t)}.json", "w"), separators=(",", ":"))
+            rec = {"d": x["d"], "c": c}
+            for k in ("h", "l"):
+                if k in x and len(x[k]) == len(c): rec[k] = [round(z, 4 if min(x["c"]) < 5 else 2) for z in x[k]]
+            for k in ("vol", "fvol", "fsym"):
+                if k in x: rec[k] = x[k]
+            if t in ("^GSPC",) and "vol" not in rec:  # index volume missing: add up the members' volume
+                V = pd.DataFrame({u: pd.Series(w["vol"], index=w["d"]) for u, w in D.items() if "vol" in w})
+                if len(V.columns) > 400:
+                    tot = V.sum(axis=1); rec["vol"] = [int(tot.get(d, 0)) for d in x["d"]]; rec["vsum"] = 1
+            json.dump(rec, open(f"{out}/data/x/{fn(t)}.json", "w"), separators=(",", ":"))
     now = datetime.datetime.now(datetime.timezone.utc); v = now.strftime("%Y%m%d%H%M")
     meta = {"v": v, "RD": master, "S": S, "X": X, "HS": HS}
     scripts = ["app.js"]

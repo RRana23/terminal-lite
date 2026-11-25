@@ -14,7 +14,8 @@ Every chart on the site, now and in future, gets a hover readout (tap on phones)
 - HTML visuals (stacked bars, gauges, range bars): put the tooltip HTML in a `data-tip` attribute (escape it with `esc`).
 - Date helpers: `chDay` (Nov 24, 2026), `chDate` (Nov 2026 for monthly data), `chYMD` (core YYMMDD to YYYY-MM-DD). Values: `chPct` for signed percentages.
 - Don't use `<title>` tooltips; they look different and appear late.
-- The core canvas charts (`line`, `drawC`, `drawX`, `drawG`) get hover from wrappers in `a_chart.js`; a new `line()` chart needs an entry in `LMETA` there with its dates and series names.
+- The core canvas charts (`line`, `drawG`) get hover from wrappers in `a_chart.js`; a new `line()` chart needs an entry in `LMETA` there with its dates and series names. The Markets price chart (`drawC`, `drawX`) is drawn by `extras/zz_tech.js`, which also adds the technical studies, their panels and the intraday chart.
+- Price data per ticker: stocks have `o h l c vol`; other assets have `c h l` plus `vol` (or `fvol`, CME futures volume, for currencies). `v` in the summary data is volatility, not volume.
 
 ## Design
 - Use the CSS variables (`--bg --pn --p2 --ln --tx --mu --am --up --dn --r`) and check both themes and a 390px phone width.
