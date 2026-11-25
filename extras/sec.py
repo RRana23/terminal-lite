@@ -1,5 +1,5 @@
 """Phase 3: annual financial statements and filing lists from SEC EDGAR (free, public domain).
-Refreshed weekly; SEC asks for at most 10 requests per second and a User-Agent that names you."""
+Refreshed each weeknight; SEC asks for at most 10 requests per second and a User-Agent that names you."""
 import datetime, json, os, time
 import requests
 
@@ -113,20 +113,26 @@ def _yahoo_one(t):
 
 def _yahoo(syms, old):
     from concurrent.futures import ThreadPoolExecutor
-    out, miss = {}, 0
+    out, miss, ok_n = {}, 0, 0
     with ThreadPoolExecutor(4) as pool:
-        for t, rec in pool.map(_yahoo_one, syms):
-            if rec: out[t] = rec
-            else:
-                miss += 1
-                if t in old: out[t] = old[t]
+        for i in range(0, len(syms), 40):  # in chunks; stop early if Yahoo refuses most requests
+            res = list(pool.map(_yahoo_one, syms[i:i + 40]))
+            n = sum(1 for _, r in res if r); ok_n += n
+            for t, rec in res:
+                if rec: out[t] = rec
+                else:
+                    miss += 1
+                    if t in old: out[t] = old[t]
+            print(f"Statements via Yahoo Finance: {min(i + 40, len(syms))}/{len(syms)} ({ok_n} ok)", flush=True)
+            if n < 0.25 * len(res) and ok_n < 0.25 * (i + len(res)):
+                print("Statements: Yahoo is refusing most requests right now; keeping the previous copy for the rest", flush=True); break
+    for t in syms:
+        if t not in out and t in old: out[t] = old[t]
     print(f"Statements via Yahoo Finance: {len(out)} companies ({miss} failed)")
     return out
 
 def fetch(ctx):
     prev = ctx.get("prev")
-    if prev and (datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) - datetime.datetime.fromisoformat(prev["_ts"])).days < 6:
-        print("SEC: using this week's copy"); return prev
     m = _get("https://www.sec.gov/files/company_tickers.json") or {}
     ciks = {v["ticker"].replace(".", "-"): str(v["cik_str"]).zfill(10) for v in m.values()}
     if not ciks:  # fallback: the Wikipedia S&P 500 table lists each company's CIK

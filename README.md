@@ -1,6 +1,6 @@
 # Terminal Lite
 
-A Bloomberg-style market terminal for the S&P 500, built on free public data and rebuilt automatically every weeknight.
+A Bloomberg-style market terminal for the S&P 500 and S&P MidCap 400 (about 900 stocks), plus ETFs, bond funds, indexes, currencies and crypto, built on free public data and refreshed automatically every weeknight.
 
 **Live site: https://rrana23.github.io/terminal-lite/**
 
@@ -28,7 +28,7 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | HDS | `NVDA HDS` | Institutional and mutual fund holders |
 | Insider screens | `NVDA INS` | Recent insider trades |
 | RV | `NVDA RV` | Industry comps, implied value at peer median, possible acquirers |
-| EQS | `EQS` | S&P 500 screener and factor scores |
+| EQS | `EQS` | Screener across the S&P 500 and MidCap 400 (filter by index, sector, P/E, growth, margin, size, yield) and factor scores |
 | OMON / OSA | `SPY OMON` | Options chains for 71 names, IV smile and term structure, max pain, strategy payoff builder |
 | NFP / ECST | `JOBS` | Payrolls by month and sector, U-3 and U-6 unemployment, participation, wages vs inflation, jobless claims, openings, Sahm rule |
 | GDP / ECST | `GDP` | Real GDP growth every quarter since 1947 with recessions shaded, contributions by component, GDPNow, consumer spending, saving rate, retail sales |
@@ -58,7 +58,7 @@ flowchart LR
   U -.optional.-> L[Finnhub live prices]
 ```
 
-- **Nightly pipeline.** A scheduled GitHub Action runs `update.py`, which downloads the data, checks each source looks complete, and builds the site. If a source fails, the last good copy (kept in the Actions cache) is used, so the site never breaks.
+- **Nightly pipeline.** Every stock, ETF and crypto is refreshed each weeknight. A scheduled GitHub Action runs `update.py`, which downloads the data, checks each source looks complete, and builds the site. If a source fails, the last good copy (kept in the Actions cache) is used, so the site never breaks.
 - **Loads fast.** The page starts with a ~400 KB summary; each ticker's 10-year history, filings or option chain loads only when you open it.
 - **Add-on design.** Each feature lives in `extras/`: a `.py` file that fetches its data and a `.js` file that adds its screens. New features don't touch the core.
 - **Every chart is readable.** Hover over (or tap) any chart for the date and the values under the pointer. One shared helper, `extras/a_chart.js`, does this for every chart, and new charts use it too.
