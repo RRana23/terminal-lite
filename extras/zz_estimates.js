@@ -1,10 +1,10 @@
 // Analyst estimates (Bloomberg EE / ANR) as an Estimates view on the Company tab: EPS estimate trend and revisions,
-// consensus EPS and revenue, ratings, price targets, upgrades and downgrades, and the S&P 500's biggest estimate changes.
+// consensus EPS and revenue, ratings, price targets, upgrades and downgrades, and the S&P 900's biggest estimate changes.
 const ESTM=META.EST||{t:[],r:{}},ESTS=new Set(ESTM.t||[]),ESTC={};
 const EPL={'0q':'Current quarter','+1q':'Next quarter','0y':'Current fiscal year','+1y':'Next fiscal year'},EPK=['0q','+1q','0y','+1y'];
 FN.EST=['Analyst estimates and revisions',1,()=>{tab=CT;CV='Estimates'}];
 FN.ANR=['Analyst ratings and price targets',1,()=>{tab=CT;CV='Estimates'}];
-if(typeof GUIDE!='undefined'){const g=GUIDE.find(x=>x[0]=='Company research');if(g){const i=g[1].findIndex(r=>r[0]=='WACC');g[1].splice(i<0?g[1].length:i+1,0,['EST','NVDA EST','EPS estimates now vs 7, 30, 60 and 90 days ago, analysts raising or cutting, consensus EPS and revenue with ranges, and the S&P 500’s biggest estimate changes.'],['ANR','NVDA ANR','Analyst ratings over four months, consensus score, price target range vs price, and recent upgrades and downgrades with target changes.'])}}
+if(typeof GUIDE!='undefined'){const g=GUIDE.find(x=>x[0]=='Company research');if(g){const i=g[1].findIndex(r=>r[0]=='WACC');g[1].splice(i<0?g[1].length:i+1,0,['EST','NVDA EST','EPS estimates now vs 7, 30, 60 and 90 days ago, analysts raising or cutting, consensus EPS and revenue with ranges, and the S&P 900’s biggest estimate changes.'],['ANR','NVDA ANR','Analyst ratings over four months, consensus score, price target range vs price, and recent upgrades and downgrades with target changes.'])}}
 function estLoad(t){return ESTC[t]?Promise.resolve():fetch('data/est/'+t+'.json?v='+META.v).then(r=>r.ok?r.json():null).then(j=>{ESTC[t]=j||{none:1}}).catch(()=>{ESTC[t]={none:1}})}
 const e$=v=>v==null?'–':(v<0?'-$':'$')+f(Math.abs(v),2),eP=v=>v==null?'–':(v>0?'+':'')+f(v*100,1)+'%',eN=v=>v==null?'–':f(v,0);
 const eChg=(a,b)=>a==null||b==null||!b?null:(a-b)/Math.abs(b);
@@ -39,7 +39,7 @@ return P('EPS estimate trend, '+cur,tt+'<div class="mu ecap">How the average ana
 function estMarket(c='c12'){const r=ESTM.r||{},a=Object.entries(r).filter(([t,v])=>v[0]!=null&&CO[t]&&isFinite(v[0]));if(!a.length)return'';
 a.sort((x,y)=>y[1][0]-x[1][0]);const row=([t,v])=>['<button class="in" data-a="run" data-v="'+t+' EST" style="width:auto">'+t+'</button>',CO[t][0],'<span class="'+(v[0]>0?'up':'dn')+'">'+(v[0]>0?'+':'')+f(v[0],1)+'%</span>','<span class="up">'+eN(v[1])+'</span> / <span class="dn">'+eN(v[2])+'</span>'];
 const hd=['','Company','30-day change','Up / down'];
-return P('Biggest estimate changes in the S&P 500, last 30 days','<h4 class="eh4">Raised the most</h4>'+T(hd,a.slice(0,6).map(row)).replace('<table','<table class="et emk"')+'<h4 class="eh4">Cut the most</h4>'+T(hd,a.slice(-6).reverse().map(row)).replace('<table','<table class="et emk"')+'<div class="mu ecap">Change in the current fiscal-year EPS estimate. Click a ticker to open its estimates.</div>',c)}
+return P('Biggest estimate changes in the S&P 900, last 30 days','<h4 class="eh4">Raised the most</h4>'+T(hd,a.slice(0,6).map(row)).replace('<table','<table class="et emk"')+'<h4 class="eh4">Cut the most</h4>'+T(hd,a.slice(-6).reverse().map(row)).replace('<table','<table class="et emk"')+'<div class="mu ecap">Change in the current fiscal-year EPS estimate. Click a ticker to open its estimates.</div>',c)}
 function estChart(){const el=$('#ech'),e=ESTC[cur];if(!el||!e||!e.tr)return;const asof=(ESTM.asof||'').slice(0,10)||new Date().toISOString().slice(0,10),base=Date.parse(asof),day=864e5;
 const ser=p=>{const m=new Map(),r=e.tr[p];if(r)[0,7,30,60,90].forEach((d,i)=>{if(r[i]!=null)m.set(new Date(base-d*day).toISOString().slice(0,10),r[i])});((e.h||{})[p]||[]).forEach(([d,v])=>{if(v!=null)m.set(d,v)});return[...m].sort((a,b)=>a[0]<b[0]?-1:1)};
 const S2=[[ser('0y'),'var(--am)','This fiscal year'],[ser('+1y'),'var(--up)','Next fiscal year']].filter(s=>s[0].length>1);if(!S2.length){el.innerHTML='<p class="mu">Not enough history yet.</p>';return}
