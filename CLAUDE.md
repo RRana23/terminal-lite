@@ -6,6 +6,7 @@
 - Add-on scripts load after the core app code in filename order, so names set the order: `a_chart` first, `zzz_nav` last. A later add-on wraps globals from earlier ones (`company`, `econ`, `events`, `home0`, `render0`, `guide`).
 - Commands live in `FN.CODE=[description, needsTicker, fn]`; Guide rows in `GUIDE`; button handlers in `S[action]`. Post-render chart drawing goes in the `Q` array.
 - The nightly GitHub Action rebuilds on weeknights at 23:17 UTC and on every push. Add `[skip ci]` to a commit message to wait for the nightly build instead.
+- Alerts: `extras/zzz_alerts.py` works out the alerts from tonight's built data (no extra downloads) using `alerts.json`, and writes `data/alerts.json`; `send_alerts.py` emails it in the workflow (not on push builds). Email secrets: `ALERT_EMAIL_TO`, `SMTP_USER`, `SMTP_PASS`; never put an email address or password in the repo.
 - Yahoo Finance throttles the build server: fetch in chunks with a circuit breaker and keep the previous copy for anything that fails. SEC EDGAR allows 10 requests per second with a User-Agent that names you.
 
 ## Charts: every chart must show the date and value on hover

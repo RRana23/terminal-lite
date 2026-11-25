@@ -37,6 +37,7 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | YAS | `YAS` | Bond calculator: price, duration, convexity, DV01, spread to Treasuries, price-yield chart |
 | TOP / CN | `TOP`, `NVDA CN` | Market and company headlines |
 | EVTS / ECO / DVD | `EVTS`, `ECO`, `DVD` | Earnings, economic and ex-dividend calendars, Fed meetings, key indicators |
+| ALRT | `ALRT` | Nightly watchlist alerts, on the site and by email: big moves, 52-week highs and lows, 200-day and golden or death crosses, RSI extremes, volume spikes, your price levels, earnings within a week, new SEC filings, analyst rating changes, and S&P 500, VIX, 10-year yield and yield-curve signals |
 | PORT | `PORT` | Portfolio value, P&L, risk (volatility, VaR, drawdown), allocation, stress tests |
 | | `NVDA AMD AVGO` | Grouping: compare up to 10 tickers with the VIX and the scenarios they are most exposed to |
 
@@ -70,9 +71,14 @@ flowchart LR
 | `template.html` | Core page and app code |
 | `CLAUDE.md` | Conventions for working on the code, including the chart hover rule |
 | `update.py` | Fetches data and builds `public/` |
+| `alerts.json`, `send_alerts.py` | Alert watchlist and rules; the nightly alert email |
 | `extras/` | Add-ons: chart hover, fundamentals, company pages, news and events, options, rates, jobs, growth and inflation, earnings calls and M&A, DCF, estimates, credit and dividends, ratings, moving averages, live prices, design, command bar, guide, about, tab order |
 | `.github/workflows/update.yml` | Schedule, cache and deploy |
 | `sp500.json`, `extra.json`, `housing.json` | Seed data, used only if a first fetch fails |
+
+### Email alerts
+
+The watchlist and rules live in [`alerts.json`](alerts.json). After each weeknight build, `send_alerts.py` emails the alerts. To turn it on, add three repository secrets (Settings > Secrets and variables > Actions): `ALERT_EMAIL_TO` (where to send), `SMTP_USER` (the Gmail address that sends) and `SMTP_PASS` (a Gmail app password for it). Run the workflow by hand to send a test. Market holidays are skipped.
 
 Run locally: `pip install yfinance pandas numpy requests lxml`, then `FRED_API_KEY=yourkey python update.py`, then `python -m http.server -d public`.
 
