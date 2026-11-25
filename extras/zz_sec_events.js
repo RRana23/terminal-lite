@@ -3,7 +3,7 @@
 // release, the filing, the EPS result, and links to find the transcript and replay; investor relations; add the
 // next call to your calendar), and a new M&A view lists the company's merger, tender offer and activist filings.
 // News & Events tab: an M&A button lists every merger filing on EDGAR over the last 45 days.
-const SXM=META.SX||{t:[]},SXS=new Set(SXM.t||[]),SXC={};let SXD=null,SXDL=null,MAF='All',DLU='S&P 500',DLT='All';
+const SXM=META.SX||{t:[]},SXS=new Set(SXM.t||[]),SXC={};let SXD=null,SXDL=null,MAF='All',DLU='S&P 900',DLT='All';
 const SXF={'DEFM14A':['Merger proxy (final)','Proxy sent to shareholders before they vote on a merger. Has the price, the background of the deal and the bankers’ fairness opinion.','Merger votes'],
 'PREM14A':['Merger proxy (draft)','First draft of the merger proxy, filed before the final version.','Merger votes'],
 'DEFM14C':['Merger information statement','Merger approved by written consent of the majority holders, so no shareholder vote is held.','Merger votes'],
@@ -23,7 +23,7 @@ FN.MNA=['M&A: merger, tender offer and activist filings',0,t=>{if(t&&CO[t]){tab=
 FN.CALLS=['Earnings calls: press releases, transcripts, replays',1,()=>{tab=CT;CV='Events'}];FN.TRAN=FN.CALLS;
 if(typeof GUIDE!='undefined'){const add=(sec,after,rows)=>{const g=GUIDE.find(x=>x[0]==sec);if(!g)return;const i=g[1].findIndex(r=>r[0]==after);g[1].splice(i<0?g[1].length:i+1,0,...rows)};
 add('Company research','ERN',[['CALLS','NVDA CALLS','Earnings calls: every earnings release since 2023 with the press release, the SEC filing and the EPS beat or miss, links to find the call transcript and replay, the investor relations site, and the next call added to your calendar.'],['MNA','NVDA MNA','M&A: the company’s merger proxies, stock deal registrations, tender offers, going-private filings, activist 13D stakes and completed deals from SEC EDGAR, with what each form means.']]);
-add('Markets and the economy','DVD',[['MNA','MNA','Deals feed: every merger, tender offer, going-private and activist filing on EDGAR in the last 45 days, for the S&P 500 or all companies.']])}
+add('Markets and the economy','DVD',[['MNA','MNA','Deals feed: every merger, tender offer, going-private and activist filing on EDGAR in the last 45 days, for the S&P 900 or all companies.']])}
 if(typeof guide=='function'){const _gS=guide;guide=function(){return _gS().replace('<tr><td>Fed meeting dates</td>','<tr><td>Earnings releases and M&amp;A filings</td><td>SEC EDGAR (company filings and the daily form index)</td><td>Each weeknight</td></tr><tr><td>Fed meeting dates</td>')}}
 S.maf=v=>{MAF=v};S.dlu=v=>{DLU=v};S.dlt=v=>{DLT=v};
 function sxLoad(t){return SXC[t]?Promise.resolve():(SXS.has(t)?fetch('data/sx/'+t+'.json?v='+META.v).then(r=>r.ok?r.json():null).catch(()=>null):Promise.resolve(null)).then(j=>{SXC[t]=j||{none:1}})}
@@ -73,13 +73,13 @@ if(!F.length)return P('M&A filings','<p class="mu">'+(SXD.err?'The deals feed is
 const cnt=SXCAT.map(c=>[c,U.filter(e=>e.cat==c).length]).filter(x=>x[1]);if(DLT!='All'&&!cnt.some(x=>x[0]==DLT))DLT='All';const L=U.filter(e=>DLT=='All'||e.cat==DLT);
 const who=e=>(e.t||[]).map((t,i)=>t&&CO[t]?LK(t)+' <span class="mu">'+esc(CO[t][0])+'</span>':esc(sxName(e.n&&e.n[i]))).filter(Boolean).join('<br>')||'–';
 const stats='<div class="sxs">'+[['All',U.length],...cnt].map(([c,n])=>'<button data-a="dlt" data-v="'+c+'" class="'+(DLT==c?'on':'')+'"><b>'+n+'</b><span>'+c+'</span></button>').join('')+'</div>';
-return P('M&A filings on EDGAR, last 45 days',SG('dlu',['S&P 500','All companies'],DLU)+stats
+return P('M&A filings on EDGAR, last 45 days',SG('dlu',['S&P 900','All companies'],DLU)+stats
 +(L.length?T(['Filed','Form','Companies','What it is',''],L.slice(0,120).map(e=>[sxDay(e.d),e.f,who(e),sxInfo(e.f)[0],sxA(e.u,'Open')])).replace('<table','<table class="sxt sxf"'):'<p class="mu">No filings of this type for this filter.</p>')
-+'<div class="mu lcap">'+(L.length>120?'Showing the latest 120 of '+L.length+'. Pick a type above to narrow the list.':'Showing '+L.length+' filing'+(L.length==1?'':'s')+'.')+' Every merger proxy, stock deal registration, tender offer, going-private and activist 13D filed on EDGAR, from the SEC’s daily index'+(SXD.src=='yahoo'?' (S&amp;P 500 only this build, via Yahoo Finance)':'')+'. A filing lists every company on it: the buyer, the target, or the investor and the company. Updated '+(SXD.asof||'')+'.</div>','c12')
++'<div class="mu lcap">'+(L.length>120?'Showing the latest 120 of '+L.length+'. Pick a type above to narrow the list.':'Showing '+L.length+' filing'+(L.length==1?'':'s')+'.')+' Every merger proxy, stock deal registration, tender offer, going-private and activist 13D filed on EDGAR, from the SEC’s daily index'+(SXD.src=='yahoo'?' (S&amp;P 900 only this build, via Yahoo Finance)':'')+'. A filing lists every company on it: the buyer, the target, or the investor and the company. Updated '+(SXD.asof||'')+'.</div>','c12')
 +sxGloss()}
 const _evS=events;events=function(){const L4=['Top news','Earnings','Economy','Dividends'],bar='<section class="p c12" style="padding:6px 12px">'+SG('nv',[...L4,'M&A'],NV)+'</section>';
 if(NV!='M&A')return _evS().replace(SG('nv',L4,NV),SG('nv',[...L4,'M&A'],NV));return bar+sxFeed()};
-// ---------- Filings view: the nightly list from this module (the statements job that fed it runs weekly) ----------
+// ---------- Filings view: the nightly list from this module (the statements job runs nightly too) ----------
 const SXDS={'10-K':'Annual report','10-Q':'Quarterly report','8-K':'Current report','4':'Insider trade','DEF 14A':'Annual meeting proxy','DEFA14A':'Additional proxy material','S-1':'Registration of new shares','S-3':'Shelf registration','S-8':'Shares for employee plans','11-K':'Employee savings plan report','20-F':'Annual report (foreign issuer)','6-K':'Current report (foreign issuer)','SC 13G':'Passive stake over 5% (13G)','SCHEDULE 13G':'Passive stake over 5% (13G)','ARS':'Annual report to shareholders','8-A12B':'Securities registration','424B2':'Prospectus (notes)','FWP':'Free writing prospectus'};
 const sxDesc=x=>{const b=x.f.replace(/\/A$/,''),a=/\/A$/.test(x.f)?' (amended)':'',d=(x.x||'').trim();return d&&d.toUpperCase()!=b&&!/^(FORM )?[0-9A-Z -]{1,9}$/.test(d)?(d==d.toUpperCase()?d.charAt(0)+d.slice(1).toLowerCase():d):SXDS[b]?SXDS[b]+a:SXF[b]?sxInfo(x.f)[0]:d||'–'};
 const sxFil=t=>{const x=SXC[t];return x&&x.fil&&x.fil.length?x.fil:((CD[t]&&CD[t].sec&&CD[t].sec.fil)||[])};
@@ -93,5 +93,5 @@ company=function(){if(!CO[cur])return _coS();if(CV=='Filings'&&!SXC[cur])sxLoad(
 const bar='<section class="p c12" style="padding:6px 12px">'+SG('cv',SVL1,CV)+'</section>',need=sxNeed();
 if(need.length){Promise.all(need).then(()=>{if(tab==CT)render0()});return bar+P(CV,'<p class="mu m">Loading '+cur+'…</p>','c12')}
 return CV=='M&A'?sxMA(bar):sxEvents(bar)};
-const _r0S=render0;render0=function(){_r0S();if(tab==CT&&CO[ac]){const d=$('#v').firstElementChild;if(d&&/Updated weekly/.test(d.textContent))d.textContent='Filings, earnings releases and M&A from SEC EDGAR, checked each weeknight. Statements, profile, ownership and insider trades from SEC EDGAR and Yahoo Finance, refreshed weekly.'}};
+const _r0S=render0;render0=function(){_r0S();if(tab==CT&&CO[ac]){const d=$('#v').firstElementChild;if(d&&/Updated weekly/.test(d.textContent))d.textContent='Filings, earnings releases and M&A from SEC EDGAR, checked each weeknight. Statements, profile, ownership and insider trades from SEC EDGAR and Yahoo Finance, refreshed each weeknight.'}};
 render();

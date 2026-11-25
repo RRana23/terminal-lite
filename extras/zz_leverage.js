@@ -1,10 +1,10 @@
 // Credit and Dividends views on the Company tab. Credit: leverage, coverage, liquidity, a synthetic rating from
-// interest coverage, Altman Z-score and peers. Dividends: yield, payout, growth, streaks, history and S&P 500 leaders.
+// interest coverage, Altman Z-score and peers. Dividends: yield, payout, growth, streaks, history and S&P 900 leaders.
 const CRM=META.CR||{t:[],s:{}},CRS=new Set(CRM.t||[]),CRC={},CRSM=CRM.s||{};
 FN.LEV=['Leverage, coverage and credit profile',1,()=>{tab=CT;CV='Credit'}];FN.CRPR=FN.LEV;
 {const dv=FN.DVD;FN.DVD=['Dividends',0,t=>{if(t&&CO[t]){tab=CT;CV='Dividends'}else return dv[2](t)}]}
 FN.DVH=['Dividend history, yield, payout and growth',1,()=>{tab=CT;CV='Dividends'}];
-if(typeof GUIDE!='undefined'){const g=GUIDE.find(x=>x[0]=='Company research');if(g){const i=g[1].findIndex(r=>r[0]=='ANR');g[1].splice(i<0?g[1].length:i+1,0,['LEV','NVDA LEV','Credit profile: net debt to EBITDA, interest coverage, a synthetic credit rating, Altman Z-score, liquidity ratios, five years of debt and cash, and leverage vs industry peers.'],['DVD','NVDA DVD','Dividend history: yield, payout ratios, 5-year growth, years of consecutive increases, payments, cash returned to shareholders, and S&P 500 dividend leaders. DVD on its own still opens the ex-dividend calendar.'])}}
+if(typeof GUIDE!='undefined'){const g=GUIDE.find(x=>x[0]=='Company research');if(g){const i=g[1].findIndex(r=>r[0]=='ANR');g[1].splice(i<0?g[1].length:i+1,0,['LEV','NVDA LEV','Credit profile: net debt to EBITDA, interest coverage, a synthetic credit rating, Altman Z-score, liquidity ratios, five years of debt and cash, and leverage vs industry peers.'],['DVD','NVDA DVD','Dividend history: yield, payout ratios, 5-year growth, years of consecutive increases, payments, cash returned to shareholders, and S&P 900 dividend leaders. DVD on its own still opens the ex-dividend calendar.'])}}
 function crLoad(t){return CRC[t]?Promise.resolve():fetch('data/cr/'+t+'.json?v='+META.v).then(r=>r.ok?r.json():null).then(j=>{CRC[t]=j||{none:1}}).catch(()=>{CRC[t]={none:1}})}
 const cX=v=>v==null||!isFinite(v)?'–':f(v,1)+'x',cPc=v=>v==null||!isFinite(v)?'–':f(v*100,1)+'%',cD=(a,b)=>a==null||b==null||!b?null:a/b;
 // Damodaran's interest coverage to rating table for large non-financial companies
@@ -35,7 +35,7 @@ return P('Credit snapshot, '+cur,snap,'c4')+P('Leverage and liquidity by fiscal 
 function crLists(c){const a=Object.entries(CRSM).filter(([t,s])=>CO[t]&&s.nde!=null&&!/Bank|Insurance|Capital Markets|Credit Services|Asset Management/i.test(fd_(t).ind||''));if(!a.length)return'';
 const row=([t,s])=>[crBtn(t,'LEV'),CO[t][0],s.nde<0?'<span class="up">Net cash</span>':cX(s.nde),cX(s.cov)],hd=['','Company','Net debt / EBITDA','Coverage'];
 const hi=[...a].sort((x,y)=>y[1].nde-x[1].nde).slice(0,8),lo=[...a].sort((x,y)=>x[1].nde-y[1].nde).slice(0,8);
-return P('Most leveraged in the S&P 500',T(hd,hi.map(row)).replace('<table','<table class="ct cp"')+'<div class="mu ccap">Excludes banks, insurers and asset managers.</div>',c)+P('Most net cash in the S&P 500',T(hd,lo.map(row)).replace('<table','<table class="ct cp"'),c)}
+return P('Most leveraged in the S&P 900',T(hd,hi.map(row)).replace('<table','<table class="ct cp"')+'<div class="mu ccap">Excludes banks, insurers and asset managers.</div>',c)+P('Most net cash in the S&P 900',T(hd,lo.map(row)).replace('<table','<table class="ct cp"'),c)}
 function crBarsDraw(Y){const el=$('#crb');if(!el)return;const S=[['debt','var(--dn)'],['cash','var(--up)'],['ebitda','var(--am)']],vs=Y.flatMap(x=>S.map(s=>x[s[0]]||0));if(!vs.some(v=>v))return;
 const w=Math.max(260,el.clientWidth),h=220,l=58,r=10,t=8,b=24,hi=Math.max(...vs)*1.08,lo=Math.min(0,...vs),gw=(w-l-r)/Y.length,bw=gw*.8/3,Yp=v=>t+(hi-v)/(hi-lo)*(h-t-b);
 let s='<svg width="'+w+'" height="'+h+'" role="img" aria-label="Debt, cash and EBITDA by year">';
@@ -62,7 +62,7 @@ function dvLists(){const a=Object.entries(CRSM).filter(([t,s])=>CO[t]);if(!a.len
 const top=(k,fn,n=8)=>a.filter(([t,s])=>s[k]!=null&&fn(s)).sort((x,y)=>y[1][k]-x[1][k]).slice(0,n);
 const yl=top('y',s=>s.y>0&&s.y<20),st=top('st',s=>s.st>0),gr=top('g5',s=>s.g5>0&&s.y>.5&&s.st>=3);
 const t3=(rows,col,fm)=>T(['','Company',col],rows.map(([t,s])=>[crBtn(t,'DVD'),nm(t),fm(s)])).replace('<table','<table class="ct cp"');
-return P('Highest dividend yields, S&P 500',t3(yl,'Yield',s=>f(s.y,2)+'%'),'c4')+P('Longest streaks of increases',t3(st,'Years',s=>s.st),'c4')+P('Fastest 5-year dividend growth',t3(gr,'Growth a year',s=>f(s.g5,1)+'%')+'<div class="mu ccap">Among stocks yielding over 0.5% with at least 3 straight increases.</div>','c4')}
+return P('Highest dividend yields, S&P 900',t3(yl,'Yield',s=>f(s.y,2)+'%'),'c4')+P('Longest streaks of increases',t3(st,'Years',s=>s.st),'c4')+P('Fastest 5-year dividend growth',t3(gr,'Growth a year',s=>f(s.g5,1)+'%')+'<div class="mu ccap">Among stocks yielding over 0.5% with at least 3 straight increases.</div>','c4')}
 function dvDraw(dv){const el=$('#dvb');if(!el||!dv.length)return;const w=Math.max(260,el.clientWidth),h=220,l=52,r=10,t=18,b=24,hi=Math.max(...dv.map(x=>x[1]))*1.15,bw=(w-l-r)/dv.length,Yp=v=>t+(hi-v)/hi*(h-t-b);
 let s='<svg width="'+w+'" height="'+h+'" role="img" aria-label="Dividends per share by year">';
 rTicks(0,hi).forEach(v=>{s+='<line x1="'+l+'" x2="'+(w-r)+'" y1="'+Yp(v)+'" y2="'+Yp(v)+'" style="stroke:var(--ln)"/>'+rTx(l-6,Yp(v)+4,'$'+f(v,2),'end')});
