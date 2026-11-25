@@ -1,0 +1,19 @@
+/* Alerts view (News & Events > Alerts) */
+.alsub{margin:-2px 0 10px;font:12.5px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+.alst{display:flex;flex-direction:column}
+.alrow{display:grid;grid-template-columns:78px 132px 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln);font:13px/1.4 'IBM Plex Sans',system-ui,sans-serif}
+.alrow:last-child{border-bottom:0}
+.altk{font:600 13px 'IBM Plex Mono',ui-monospace,monospace}
+.altag{justify-self:start;font:600 11px 'IBM Plex Sans',system-ui,sans-serif;padding:2px 8px;border-radius:3px;white-space:nowrap;border:1px solid currentColor}
+.al-up{color:var(--up)}.al-dn{color:var(--dn)}.al-info{color:var(--am)}
+.albar{display:grid;grid-template-columns:72px 1fr 54px;gap:8px;align-items:center;padding:3px 0;font:12px 'IBM Plex Mono',ui-monospace,monospace;cursor:default}
+.alz{position:relative;height:12px;background:linear-gradient(var(--ln),var(--ln)) center/1px 100% no-repeat}
+.alz i{position:absolute;top:1px;bottom:1px;border-radius:2px;min-width:1px}
+.albar b{text-align:right;font-weight:500}
+.albar:hover .alz i{opacity:.75}
+table.alwt td:nth-child(n+3),table.alwt th:nth-child(n+3){text-align:right;font-variant-numeric:tabular-nums}
+table.alwt td:nth-child(2),table.alwt th:nth-child(2){text-align:left}
+table.alwt td:nth-child(2){color:var(--mu);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+a.albtn{display:inline-block;white-space:nowrap;font:500 13px 'IBM Plex Sans',system-ui,sans-serif;text-decoration:none;padding:8px 12px;border:1px solid var(--ln);border-radius:var(--r,4px);color:var(--tx)}
+a.albtn:hover{border-color:var(--am);color:var(--am)}
+@media (max-width:600px){.alrow{grid-template-columns:64px 1fr;row-gap:4px}.almsg{grid-column:1/-1}table.alwt td:nth-child(2),table.alwt th:nth-child(2),table.alwt td:nth-child(5),table.alwt th:nth-child(5),table.alwt td:nth-child(9),table.alwt th:nth-child(9){display:none}table.alwt td,table.alwt th{padding-left:4px;padding-right:4px}}

@@ -1,0 +1,23 @@
+{
+  "_help": "Your nightly alert email. Edit on GitHub (pencil icon), then Commit. Tickers: any S&P 500 stock, ETF, index (^GSPC), currency (EURUSD=X) or crypto (BTC-USD) on the site. Up to 40.",
+  "watchlist": ["SPY", "QQQ", "NVDA", "AAPL", "MSFT", "AMZN", "GOOGL", "META", "JPM", "TLT", "GLD", "BTC-USD"],
+  "_price_levels_help": "Optional: alert when a close crosses your level, for example \"NVDA\": {\"above\": 200, \"below\": 150}",
+  "price_levels": {},
+  "email_when_quiet": true,
+  "rules": {
+    "move_pct": 3,
+    "crypto_move_pct": 6,
+    "high_low_52w": true,
+    "ma_cross": true,
+    "rsi_low": 30,
+    "rsi_high": 70,
+    "volume_x": 2.0,
+    "earnings_days": 7,
+    "filings": true,
+    "ratings": true,
+    "market_move_pct": 2,
+    "vix_level": 25,
+    "vix_jump_pct": 15,
+    "yield_move_bp": 10
+  }
+}
