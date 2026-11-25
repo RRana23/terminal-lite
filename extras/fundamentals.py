@@ -1,4 +1,4 @@
-"""Phase 2: company fundamentals for the S&P 500 from Yahoo Finance (yfinance Ticker.info)."""
+"""Phase 2: company fundamentals for the S&P 500 and MidCap 400 from Yahoo Finance (yfinance Ticker.info)."""
 import time
 from concurrent.futures import ThreadPoolExecutor
 

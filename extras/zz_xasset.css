@@ -14,3 +14,4 @@ table.xh td:nth-child(2){max-width:300px;overflow:hidden;text-overflow:ellipsis;
 .xbar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:600px){.xbar{grid-template-columns:110px 1fr 48px;gap:8px}table.xh td:nth-child(2){max-width:130px}}
 table.xh td:nth-child(2),table.xh th:nth-child(2){text-align:left}
+.xmid{display:inline-block;font:600 10.5px 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:.03em;color:var(--am);border:1px solid var(--ln);border-radius:var(--r,4px);padding:1px 6px;margin-left:6px;vertical-align:1px}

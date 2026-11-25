@@ -1,6 +1,6 @@
 """Profiles for ETFs, bond funds and crypto, so the Company tab follows any asset you select: fund facts (category,
 family, assets, expense ratio, yield), top holdings, sector and asset-class mix, and coin facts (market cap,
-supply, 24-hour volume). From Yahoo Finance, refreshed weekly. Indexes and currencies use the price data the
+supply, 24-hour volume). From Yahoo Finance, refreshed each weeknight. Indexes and currencies use the price data the
 site already has. (Named zz_xasset so its page code wraps the Company tab after every other add-on.)"""
 import datetime, json, os, time
 from concurrent.futures import ThreadPoolExecutor
@@ -63,8 +63,6 @@ def _one(t):
 def fetch(ctx):
     prev = ctx.get("prev") or {}
     now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-    if prev.get("_ts") and len(prev.get("d", {})) >= 60 and (now - datetime.datetime.fromisoformat(prev["_ts"])).days < 6:
-        print("Fund and crypto profiles: using this week's copy"); return prev
     old, out, ok, syms = prev.get("d", {}), {}, 0, ETFS + COINS
     import sys  # also pick up any fund or coin added to the site's lists later
     G = getattr(sys.modules.get("__main__"), "G", None) or getattr(sys.modules.get("update"), "G", None) or {}

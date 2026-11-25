@@ -1,4 +1,4 @@
-"""Phase 3: company profile, institutional holders and insider trades from Yahoo Finance. Refreshed weekly."""
+"""Phase 3: company profile, institutional holders and insider trades from Yahoo Finance. Refreshed each weeknight."""
 import datetime, json, os, time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -41,8 +41,6 @@ def _one(t):
 
 def fetch(ctx):
     prev = ctx.get("prev")
-    if prev and (datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) - datetime.datetime.fromisoformat(prev["_ts"])).days < 6:
-        print("Holders: using this week's copy"); return prev
     old, out, miss = (prev or {}).get("d", {}), {}, 0
     with ThreadPoolExecutor(4) as pool:
         for t, d in pool.map(_one, ctx["syms"]):
