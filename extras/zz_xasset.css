@@ -1,0 +1,16 @@
+/* Company tab profile for ETFs, bond funds, crypto, indexes and currencies */
+.xhd{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 14px;margin:2px 0 10px}
+.xbadge{font:600 11px 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--am);border:1px solid var(--ln);border-radius:var(--r,4px);padding:3px 8px;align-self:center}
+.xdesc{font:13px/1.55 'IBM Plex Sans',system-ui,sans-serif;color:var(--tx);margin:0 0 12px;max-width:78ch}
+.xbtn{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 2px}
+.xbtn button{width:auto;cursor:pointer;padding:7px 12px;min-height:36px}
+.xbtn button:hover{border-color:var(--am);color:var(--am)}
+table.xt td:last-child,table.xt th:last-child{text-align:right;font-variant-numeric:tabular-nums}
+table.xh td:nth-child(2){max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xbar{display:grid;grid-template-columns:minmax(110px,170px) 1fr 52px;align-items:center;gap:10px;padding:4px 0;font:12.5px 'IBM Plex Sans',system-ui,sans-serif;cursor:default}
+.xbar i{display:block;height:10px;border-radius:2px;min-width:2px;transition:opacity .15s}
+.xbar b{font:500 12px 'IBM Plex Mono',ui-monospace,monospace;text-align:right;font-variant-numeric:tabular-nums}
+.xbar:hover i{opacity:.75}
+.xbar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:600px){.xbar{grid-template-columns:110px 1fr 48px;gap:8px}table.xh td:nth-child(2){max-width:130px}}
+table.xh td:nth-child(2),table.xh th:nth-child(2){text-align:left}

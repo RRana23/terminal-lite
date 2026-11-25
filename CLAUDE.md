@@ -15,6 +15,7 @@ Every chart on the site, now and in future, gets a hover readout (tap on phones)
 - Date helpers: `chDay` (Nov 24, 2026), `chDate` (Nov 2026 for monthly data), `chYMD` (core YYMMDD to YYYY-MM-DD). Values: `chPct` for signed percentages.
 - Don't use `<title>` tooltips; they look different and appear late.
 - The core canvas charts (`line`, `drawG`) get hover from wrappers in `a_chart.js`; a new `line()` chart needs an entry in `LMETA` there with its dates and series names. The Markets price chart (`drawC`, `drawX`) is drawn by `extras/zz_tech.js`, which also adds the technical studies, their panels and the intraday chart.
+- The Company tab follows the selected asset (`ac`): stocks get the company pages (`cur`), and ETFs, bond funds, crypto, indexes and currencies get a profile from `extras/zz_xasset.js` (fund and coin facts in `data/fp/`, refreshed weekly). New company views should check `CO[cur]`; new asset-wide views belong in `xProfile`.
 - Price data per ticker: stocks have `o h l c vol`; other assets have `c h l` plus `vol` (or `fvol`, CME futures volume, for currencies). `v` in the summary data is volatility, not volume.
 
 ## Design

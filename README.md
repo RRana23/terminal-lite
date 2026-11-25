@@ -15,7 +15,7 @@ Type a ticker and a function into the command bar, the way you would on a Bloomb
 | GP | `NVDA` | Candlestick chart up to 10 years, indicators, and 1, 5, 10, 20, 50, 100 and 200-day moving averages plus any custom period (`NVDA MA`) |
 | GP studies | `NVDA TECH` | Technical studies on any stock, ETF, index, currency or crypto chart: Bollinger Bands, EMA, Keltner Channels, VWAP, Parabolic SAR, Ichimoku, Fibonacci, TD Sequential, plus volume, RSI, MACD, stochastics, Williams %R, CCI, ATR, ADX/DMI, OBV and rate of change panels, all adjustable |
 | GIP | `SPY GIP` | Intraday 5-minute chart for the last five sessions with session VWAP and volume (ETFs, crypto, 100 largest stocks); live VWAP from the trade feed when live prices are on |
-| DES | `NVDA DES` | Company profile, sector, headcount, headline financials |
+| DES | `NVDA DES`, `SPY DES` | Company profile, sector, headcount, headline financials. For ETFs, bond funds, crypto, indexes and currencies the Company tab shows a profile instead: fund facts (category, assets, expense ratio, yield), top 10 holdings, sector mix, coin supply, performance, risk and a price chart |
 | FA | `NVDA FA` | 5 years of income statement, cash flow and balance sheet, copy to Excel |
 | DCF / WACC | `NVDA DCF`, `NVDA WACC` | Five-year DCF seeded from the statements, CAPM cost of equity with adjusted beta, WACC, terminal value, sensitivity grid |
 | EE | `NVDA EST` | EPS estimate trend and revisions, consensus EPS and revenue, price targets, biggest estimate changes |
