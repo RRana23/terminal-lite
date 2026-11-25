@@ -21,7 +21,7 @@ function cmd(raw){const w=raw.toUpperCase().trim().split(/[\s,]+/).filter(Boolea
 let code=null;const ts=[];for(const x of w){const t=tick(x);if(FN[x]&&!code&&(ts.length||!t))code=x;else if(t)ts.push(t);else{say('Unknown: '+x+'. Type HELP for the list.',1);return}}
 if(!code)code=ts.length>1?'G':'GP';const f=FN[code],t=ts[0];
 if(code=='G'){if(ts.length){SEL=ts.slice(0,10);GR=GR||'1Y'}}
-else if(t){if(f[1]&&!CO[t]){say(code+' works for S&P 500 stocks. Try '+t+' GP.',1);return}if(CO[t])cur=ac=t;else ac=t}
+else if(t){if(f[1]&&!CO[t]){say(code+' works for stocks (S&P 500 and MidCap 400). Try '+t+' GP or '+t+' DES.',1);return}if(CO[t])cur=ac=t;else ac=t}
 else if(f[1]&&!CO[cur]){say('Add a stock, for example NVDA '+code+'.',1);return}
 if(code=='OMON'&&t&&!OPS.has(t)){say('No options chain for '+t+'. Covered: '+OPL.slice(0,12).join(', ')+'…',1);return}
 const r=f[2](t);say((t&&code!='G'?t+' ':'')+code+' · '+f[0]);if(r!=='skip')render();const q=$('#q');q.select()}

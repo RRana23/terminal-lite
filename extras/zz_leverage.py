@@ -1,6 +1,6 @@
 """Credit and dividends (Bloomberg FA leverage, CRPR-style profile, DVD history): five years of debt, cash, EBITDA,
 interest, liquidity and payout lines from Yahoo Finance statements, plus each company's full dividend history.
-Refreshed weekly, since annual statements and dividend histories change slowly. (Named zz_leverage so its page code
+Refreshed each weeknight. (Named zz_leverage so its page code
 loads after the Estimates view.)"""
 import datetime, json, math, os, time
 from concurrent.futures import ThreadPoolExecutor
@@ -104,8 +104,6 @@ def _run(syms, one, label, workers=4, chunk=40, retry_cap=80, retry_secs=240):
 def fetch(ctx):
     prev = ctx.get("prev") or {}
     now = datetime.datetime.now(datetime.timezone.utc)
-    if prev.get("_ts") and len(prev.get("d", {})) >= 400 and (now - datetime.datetime.fromisoformat(prev["_ts"])).days < 6:
-        print("Credit and dividends: using this week's copy"); return prev
     old, out, fails = prev.get("d", {}), {}, 0
     got, stopped = _run(list(ctx["syms"]), _one, "Credit and dividends")
     for t in ctx["syms"]:
@@ -127,7 +125,7 @@ def _last(a):
 
 
 def summary(rec, px, cap):
-    """Latest-year figures for the S&P 500 lists. Same formulas as the page."""
+    """Latest-year figures for the S&P 900 lists. Same formulas as the page."""
     r = rec.get("r", {})
     g = lambda k: _last(r.get(k))
     ebitda = g("ebitda") or ((g("ebit") or 0) + (g("dep") or 0) or None)
@@ -157,7 +155,7 @@ def build(data, meta, out):
     for t, rec in d.items():
         json.dump(rec, open(f"{out}/data/cr/{t}.json", "w"), separators=(",", ":"))
         sm[t] = summary(rec, (S.get(t) or {}).get("p"), (F.get(t) or {}).get("cap"))
-    # S&P 500 medians among dividend payers: yield, and year-over-year growth of the annual dividend
+    # S&P 900 medians among dividend payers: yield, and year-over-year growth of the annual dividend
     med = lambda a: sorted(a)[len(a) // 2] if a else None
     gy = {}
     for rec in d.values():

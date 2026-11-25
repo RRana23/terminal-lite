@@ -41,13 +41,21 @@ def _one(t):
 
 def fetch(ctx):
     prev = ctx.get("prev")
-    old, out, miss = (prev or {}).get("d", {}), {}, 0
+    old, out, miss, ok_n, syms = (prev or {}).get("d", {}), {}, 0, 0, list(ctx["syms"])
     with ThreadPoolExecutor(4) as pool:
-        for t, d in pool.map(_one, ctx["syms"]):
-            if d: out[t] = d
-            else:
-                miss += 1
-                if t in old: out[t] = old[t]
+        for i in range(0, len(syms), 40):  # in chunks; stop early if Yahoo refuses most requests
+            res = list(pool.map(_one, syms[i:i + 40]))
+            n = sum(1 for _, d in res if d); ok_n += n
+            for t, d in res:
+                if d: out[t] = d
+                else:
+                    miss += 1
+                    if t in old: out[t] = old[t]
+            print(f"Holders: {min(i + 40, len(syms))}/{len(syms)} ({ok_n} ok)", flush=True)
+            if n < 0.25 * len(res) and ok_n < 0.25 * (i + len(res)):
+                print("Holders: Yahoo is refusing most requests right now; keeping the previous copy for the rest", flush=True); break
+    for t in syms:
+        if t not in out and t in old: out[t] = old[t]
     print(f"Holders: {len(out)} companies ({miss} failed; previous copy kept where available)")
     return {"_ts": datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds"), "d": out}
 
