@@ -1,4 +1,4 @@
-"""Profiles for ETFs, bond funds and crypto, so the Company tab follows any asset you select: fund facts (category,
+"""Profiles for ETFs, mutual funds, bond funds and crypto, so the Company tab follows any asset you select: fund facts (category,
 family, assets, expense ratio, yield), top holdings, sector and asset-class mix, and coin facts (market cap,
 supply, 24-hour volume). From Yahoo Finance, refreshed each weeknight. Indexes and currencies use the price data the
 site already has. (Named zz_xasset so its page code wraps the Company tab after every other add-on.)"""
@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 NAME = "zz_xasset"
 ETFS = ("SPY QQQ IWM VOO IVV VTI EEM EFA VEA VWO GLD SLV USO XLF XLE XLK XLV XLI XLY XLP XLU XLB XLRE XLC SMH SOXX ARKK "
-        "VNQ VUG VTV IWD IWF IJH IJR QQQM SCHD JEPI DIA TQQQ SQQQ SOXL KRE XBI IBIT IEMG IXUS ITOT SCHB VXUS RSP "
+        "VNQ VUG VTV IWD IWF IJH IJR QQQM SCHD JEPI DIA TQQQ SQQQ SOXL KRE XBI IBIT IEMG IXUS ITOT SCHB VXUS RSP SPYD FXAIX "
         "AGG BND TLT IEF SHY IEI TLH VGSH VGIT VGLT GOVT SCHO SCHR SPTL BIL SGOV SHV LQD VCIT VCSH VCLT IGIB IGSB HYG JNK "
         "USHY SHYG ANGL EMB PCY BNDX IAGG MUB VTEB TIP SCHP STIP VTIP IUSB BSV BIV BLV FLOT MBB VMBS BKLN SRLN").split()
 COINS = "BTC-USD ETH-USD BNB-USD XRP-USD SOL-USD DOGE-USD ADA-USD AVAX-USD LINK-USD TRX-USD".split()
@@ -66,7 +66,7 @@ def fetch(ctx):
     old, out, ok, syms = prev.get("d", {}), {}, 0, ETFS + COINS
     import sys  # also pick up any fund or coin added to the site's lists later
     G = getattr(sys.modules.get("__main__"), "G", None) or getattr(sys.modules.get("update"), "G", None) or {}
-    for g in ("ETFs", "Bonds", "Crypto"):
+    for g in ("ETFs", "Funds", "Bonds", "Crypto"):
         lst = G.get(g, "")
         for t in (lst.split() if isinstance(lst, str) else lst):
             if not t.startswith("^") and t not in syms: syms.append(t)
