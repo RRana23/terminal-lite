@@ -40,7 +40,8 @@ def fetch_sp500():
         if s not in out and s in prev: out[s] = dict(prev[s], **({"x": 4} if s in mid else {}))
     print("Stocks:", sum(1 for v in out.values() if "x" not in v), "S&P 500 and", sum(1 for v in out.values() if "x" in v), "MidCap 400"); return out
 
-G = {"ETFs": "SPY QQQ IWM VOO IVV VTI EEM EFA VEA VWO GLD SLV USO XLF XLE XLK XLV XLI XLY XLP XLU XLB XLRE XLC SMH SOXX ARKK VNQ VUG VTV IWD IWF IJH IJR QQQM SCHD JEPI DIA TQQQ SQQQ SOXL KRE XBI IBIT IEMG IXUS ITOT SCHB VXUS RSP",
+G = {"ETFs": "SPY QQQ IWM VOO IVV VTI EEM EFA VEA VWO GLD SLV USO XLF XLE XLK XLV XLI XLY XLP XLU XLB XLRE XLC SMH SOXX ARKK VNQ VUG VTV IWD IWF IJH IJR QQQM SCHD JEPI DIA TQQQ SQQQ SOXL KRE XBI IBIT IEMG IXUS ITOT SCHB VXUS RSP SPYD",
+     "Funds": "FXAIX",
      "Indexes": "^GSPC ^DJI ^IXIC ^RUT ^VIX ^FTSE ^N225 ^GDAXI ^HSI ^STOXX50E",
      "Currencies": "EURUSD=X JPY=X GBPUSD=X AUDUSD=X CAD=X CHF=X CNY=X NZDUSD=X INR=X MXN=X",
      "Crypto": "BTC-USD ETH-USD BNB-USD XRP-USD SOL-USD DOGE-USD ADA-USD AVAX-USD LINK-USD TRX-USD",
@@ -132,8 +133,9 @@ def load(name):
 NM = {'^GSPC':'S&P 500','^DJI':'Dow Jones','^IXIC':'Nasdaq Composite','^RUT':'Russell 2000','^VIX':'VIX','^FTSE':'FTSE 100','^N225':'Nikkei 225','^GDAXI':'DAX','^HSI':'Hang Seng','^STOXX50E':'Euro Stoxx 50',
       'EURUSD=X':'EUR/USD','JPY=X':'USD/JPY','GBPUSD=X':'GBP/USD','AUDUSD=X':'AUD/USD','CAD=X':'USD/CAD','CHF=X':'USD/CHF','CNY=X':'USD/CNY','NZDUSD=X':'NZD/USD','INR=X':'USD/INR','MXN=X':'USD/MXN',
       'BTC-USD':'Bitcoin','ETH-USD':'Ethereum','BNB-USD':'BNB','XRP-USD':'XRP','SOL-USD':'Solana','DOGE-USD':'Dogecoin','ADA-USD':'Cardano','AVAX-USD':'Avalanche','LINK-USD':'Chainlink','TRX-USD':'Tron',
+      'SPYD':'SPDR Portfolio S&P 500 High Dividend ETF','FXAIX':'Fidelity 500 Index Fund',
       '^IRX':'3-month Treasury yield','^FVX':'5-year Treasury yield','^TNX':'10-year Treasury yield','^TYX':'30-year Treasury yield'}
-GL = {'ETFs':'ETF','Indexes':'Index','Currencies':'Currency','Crypto':'Crypto','Bonds':'Bond'}
+GL = {'ETFs':'ETF','Funds':'Fund','Indexes':'Index','Currencies':'Currency','Crypto':'Crypto','Bonds':'Bond'}
 J = lambda o: json.dumps(o, separators=(",", ":"))
 
 def split_template():
