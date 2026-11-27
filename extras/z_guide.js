@@ -13,7 +13,7 @@ const GUIDE=[
   ['CN','NVDA CN','The latest headlines for the company, each linking to the article.'],
   ['ERN','NVDA ERN','Next earnings date with EPS and revenue estimates, ex-dividend and pay dates, and recent 8-K filings.']]],
  ['Trading and analysis',[
-  ['OMON','SPY OMON','Real options chain for 71 heavily traded names: calls and puts with bid, ask, volume, open interest and IV; expected move, skew, max pain, volatility smile and term structure; a strategy builder with payoff chart.'],
+  ['OMON','SPY OMON','Real options chains for every stock, ETF and index on the site with listed options (4 weekly, 6 monthly and 2 long-dated expirations): calls and puts with bid, ask, volume, open interest and IV; expected move, skew, max pain, volatility smile and term structure; a strategy builder with payoff chart.'],
   ['RV','NVDA RV','Comparable companies in the same industry with EV/EBITDA, EV/Sales, P/E, growth and margins; implied value at the peer median; possible acquirers.'],
   ['EE','NVDA EE','Trailing financials, consensus EPS, price target and rating, and a model builder seeded with real growth and margins.'],
   ['EQS','EQS','Screener across the S&P 900 (S&P 500 plus MidCap 400) by index, sector, P/E, growth, margin, size and dividend yield, plus factor scores for the selected stock.'],
